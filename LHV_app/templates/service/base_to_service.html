@@ -1,0 +1,24 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}
+                <a href="{% url 'service:service_and_parts_list' obj.slug %}" 
+                class="btn btn-default" role="button">Add
+                </a>
+            </legend>
+        </div>
+        {% for obj in object_list %}
+            <li class="list-group-item">
+                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+            </li>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }} 
+                <a href="{% url "service:part_needs_update" object.slug %}" 
+                    class="btn btn-default" role="button">Update
+                </a> 
+                {% if request.user.is_superuser %}
+                <a href="{% url "service:part_needs_delete" object.slug %}" 
+                    class="btn btn-warning" role="button">Delete
+                </a>
+                {% endif %}
+            </legend>
+        </div>
+    </div>
+    <div class="list-group">
+        {% if object.service.service_no_longer_available %}
+            <ul>
+                <p>We 
+                    <strong>no longer uses this service</strong>
+                </p>
+            </ul>
+        {% elif object.part.no_longer_available %}
+            <ul>
+                <p>We 
+                    <strong>no longer uses this product</strong>
+                </p>
+            </ul>
+        {% elif object.part.supplier.no_longer_use %}
+            <ul>
+                <p>We 
+                    <strong>no longer uses the company that supplies this part</strong>
+                </p>
+            </ul>
+        {% else %}
+        <li class="list-group-item">
+            <ul>Service: {{ object.service }}</ul>
+            <ul>Units of parts: {{ object.units_of_parts }}</ul>
+        </li>
+            {% if object.comment %}
+            <li class="list-group-item">
+            <ul>Comment: {{ object.comment }}</ul>
+            </li>
+            {% endif %} 
+        {% endif %}
+    </div>
+{% endblock %}

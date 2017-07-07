@@ -1,0 +1,6 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+{% load scheduletags %}
+{% block full %}
+<h1>{{ calendar.name }}</h1>
+{% month_table calendar period "small" %}
+{% endblock %}

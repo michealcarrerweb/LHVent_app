@@ -1,0 +1,37 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% load bootstrap %}
+{% block full %}
+<link href="/site_media/static/css/datetimepicker.css" type="text/css" media="all" rel="stylesheet" />
+<script type="text/javascript" src="/site_media/static/js/bootstrap-datetimepicker.js"></script>
+
+<div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}</legend>
+        </div>
+<div class="list-group">
+
+<form action="" method="post">
+  {% csrf_token %}
+  <table>
+    {{ form|bootstrap }}
+  </table>
+  <br>
+  <input class="btn btn-default" 
+	       type="button" value="{% trans "Cancel" %}" 
+	       onclick="window.history.go(-1);"/>
+  <button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
+</form>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#id_username').focus();
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+
+{% load i18n %}
+
+{% load crispy_forms_tags %}
+
+{% block body_class %}account{% endblock %}
+
+
+{% block subnav %}
+<div class="panel panel-default col-xs-12 col-md-8">
+    <div class="panel-heading"><strong><h3>{% trans "Client Financial Information" %}</h3>
+       
+            <li><a href="/client/entry">New Entry</a></li>
+            <li><a href="/client/source">New Source Entry</a></li>
+            <li><a href="/client/correspondence">Correspondence</a></li>
+            <li><a href="/client/conflict-or-comment">Conflict/Comment</a></li>
+        
+    </strong></div>
+    <div class="list-group">
+    	<strong><h4>{{ details }}</h4></strong> 
+        {{ details.project.phone }} 
+        {{ details.balance_due }}
+<!--         <strong>{{ client.phone }}<br>
+        {{ client.street_address|capfirst }} {{ client.city_and_state|capfirst }} {{ client.zip_code }}</strong><br>
+        {% if client.phone_alt %}{{ client.phone_alt }}<br>{% endif %}
+        {% if client.phone_home %}{{ client.phone_home }}<br>{% endif %}
+        {% if client.fax %}{{ client.fax }}<br>{% endif %}
+        {% if client.email %}{{ client.email }}{% endif %} -->
+        <!-- <form method='POST' action=''>{% csrf_token %}
+            {{ form|crispy }}
+            <input type='submit' value='Submit'/> 
+        </form> -->
+    </div>
+
+</div>
+{% endblock %}

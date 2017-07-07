@@ -1,0 +1,34 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+{% load scheduletags i18n %}
+
+{% load i18n %}
+{% block head_title %}{% trans "Month" %}{% endblock %}
+
+{% block full %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <legend>{{ object }}</legend>
+      <a href="{% url "day_calendar" calendar.slug %}">
+              {% trans "Today" %}
+      </a><br>
+      <a href="{% url "month_calendar" calendar.slug %}">
+        {% trans "This month" %}
+      </a><br>
+      <a href="{% url "year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}">
+      {% trans "Full Year Calendar" %}
+      </a>
+  </div>
+  <div class="panel-body">
+    {% include "schedule/_dialogs.html" %}
+    <div class="row row-centered">
+      {% prevnext "month_calendar" calendar period "F Y"%}
+        <li class="list-group-item">
+              <div class="row">
+        {% month_table calendar period "regular" %}
+              </div>
+        </li>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

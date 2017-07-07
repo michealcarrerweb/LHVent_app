@@ -1,0 +1,35 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}
+                <a href="{% url 'staff_signup' %}" 
+                class="btn btn-default" role="button">Add
+                </a> 
+            </legend>
+        </div>
+        <div class="panel-body">
+        {% for staff in staff_list %}
+            <li class="list-group-item">
+                {% if request.user.is_superuser %}
+                <a href="{% url 'staff_root_update' staff.pk %}">
+                {% else %}
+                <a href="{% url 'staff_update' staff.pk %}">
+                {% endif %} 
+                {{ staff.username }}</a> 
+                {% if staff.is_active == False %} - DEACTIVATED
+                {% elif staff.initial_password %} - Temporary Password: {{ staff.initial_password }}
+                {% else %} - <a href="{% url 'time_log:staff_log_list' staff.pk %}">View work schedule</a>
+                {% endif %}           
+            </li>
+        {% endfor %}
+        </div>
+    </div>
+{% endblock %}

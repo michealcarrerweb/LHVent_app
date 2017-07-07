@@ -1,0 +1,55 @@
+{% extends "service/service_menu.html" %}
+
+{% load i18n %}
+{% load bootstrap %}
+
+{% block body_class %}service services-detail{% endblock %}
+
+{% block head_title %}{% trans "Service" %}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }} - ({{ object.base }})</legend>
+            <a href="{% url "service:service_update" object.slug %}">Update</a><br>
+            {% if request.user.is_superuser %}
+            <a href="{% url "service:service_delete" object.slug %}">Delete</a>
+            {% endif %}
+        </div>
+    </div>
+    {% if object.service_no_longer_available %}
+    <ul><p>We<strong>no longer provide this service</strong></p></ul>
+    {% else %}
+    <li class="list-group-item">
+        <ul>Cost: ${{ all_cost|floatformat:2 }}</ul>
+        <ul>Hours: {{ all_time|floatformat:2 }}</ul>               
+    </li>
+    <li class="list-group-item">
+        <ul>
+            <dl>
+              <dt>Parts required:</dt>
+              {% if parts_list %}
+                <dd>{% autoescape on %}
+                        {{ parts_list | linebreaksbr }}
+                    {% endautoescape %}
+                </dd>
+              {% else %}
+                <dd>None</dd>
+              {% endif %}
+              <dt>Job tools required:</dt>
+              {% if object.get_job_tools %}
+                <dd>{% autoescape on %}
+                        {{ object.get_job_tools | linebreaksbr }}
+                    {% endautoescape %}
+                </dd>
+              {% else %}
+                <dd>None</dd>
+              {% endif %}
+              <dt><a href="{% url 'equipment:job_tool_and_category_list' "personal-tools" %}">
+                Personal tools required</a></dt>
+            </dl>
+        </ul>
+    </li>  
+    {% endif %}
+{% endblock %}
+

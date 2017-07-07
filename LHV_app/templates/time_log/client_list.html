@@ -1,0 +1,30 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}
+                <a href="{% url 'staff_signup' %}" 
+                class="btn btn-default" role="button">Add
+                </a> 
+            </legend>
+        </div>
+        <div class="panel-body">
+        {% for client in client_list %}
+            <li class="list-group-item">
+                <a href="{% url 'staff_update' client.pk %}">
+                {{ client.first_name }}{% if client.spouse_name %} and {{ client.spouse_name }}{% endif %} {{ client.last_name }}</a> 
+                {% if client.is_active == False %} - DEACTIVATED
+                {% elif client.initial_password %} - Temporary Password: {{ client.initial_password }}
+                {% endif %}           
+            </li>
+        {% endfor %}
+        </div>
+    </div>
+{% endblock %}

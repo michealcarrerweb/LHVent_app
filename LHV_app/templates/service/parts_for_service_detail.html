@@ -1,0 +1,46 @@
+{% extends "service/service_menu.html" %}
+
+{% load i18n %}
+{% load bootstrap %}
+
+{% block body_class %}service services-detail{% endblock %}
+
+{% block head_title %}{% trans "Service" %}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }}
+                <a href="{% url "service:part_needs_update" object.slug %}" 
+                    class="btn btn-default" role="button">Update
+                </a>
+                {% if request.user.is_superuser %}
+                    <a href="{% url "service:part_needs_delete" object.slug %}" 
+                        class="btn btn-warning" role="button">Delete
+                    </a>
+                {% endif %}
+            </legend>
+            <a href="{% url 'service:part_needs_create' %}">
+                Add part
+            </a>
+            {% if object.product.no_longer_available %}
+            <ul>
+                <p>Wwe 
+                    <strong>no longer provide this part</strong>
+                </p>
+            </ul>
+            {% else %}
+            <li class="list-group-item">
+                <ul>{{ object.description }}</ul>
+            </li>
+            <li class="list-group-item">
+                <ul>
+                    {{ object.quantity }} units of {{ object.product.item }}
+                    
+                </ul>
+            </li>  
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

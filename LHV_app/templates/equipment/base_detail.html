@@ -1,0 +1,27 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }}
+                    {% if object.id is not 1 %}
+                        <a href="{% url "equipment:base_update" object.slug %}" 
+                            class="btn btn-default" role="button">Update
+                        </a>
+                        {% endif %}
+                    {% if request.user.is_superuser and object.id is not 1 %}
+                        <a href="{% url "equipment:base_delete" object.slug %}" 
+                            class="btn btn-warning" role="button">Delete
+                        </a>
+                    
+                    {% endif %}
+            </legend>
+        </div>
+    </div>
+{% endblock %}

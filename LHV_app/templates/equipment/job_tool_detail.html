@@ -1,0 +1,38 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }} 
+                <a href="{% url "equipment:job_tool_update" object.slug %}" 
+                    class="btn btn-default" role="button">Update
+                </a> 
+                {% if request.user.is_superuser %}
+                <a href="{% url "equipment:job_tool_delete" object.slug %}" 
+                    class="btn btn-warning" role="button">Delete
+                </a>
+                {% endif %}
+            </legend>
+        </div>
+    </div>
+    <div class="list-group">
+        {% if object.condition != 'good' %}
+            <ul>
+                <p>{{ object.item }} was  
+                    <strong>{{ object.is_condition }}</strong> on {{ object.incident }}.
+                </p>
+            </ul>
+        {% else %}
+        <li class="list-group-item">
+            <ul>Category: {{ object.base.category }}</ul>
+            <ul>Supplier: {{ object.supplier.company }}</ul>
+        </li>  
+        {% endif %}
+    </div>
+{% endblock %}

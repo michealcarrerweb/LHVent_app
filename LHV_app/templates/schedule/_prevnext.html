@@ -1,0 +1,12 @@
+{% load scheduletags staticfiles %}
+<style>
+.letter-size{
+   font-size:1.1em; 
+   padding-bottom: 16px; 
+}
+</style>
+<div class="row row-centered letter-size">
+    {% prev_url target calendar period %}
+    &nbsp; <b>{{period_name}}</b> &nbsp;
+    {% next_url target calendar period %}
+</div>

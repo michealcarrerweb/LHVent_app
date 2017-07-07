@@ -1,0 +1,98 @@
+[
+    {
+        "pk": 1,
+        "model": "finance.main",
+        "fields": {
+            "main": "Master Ledger"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "hourly.hourly",
+        "fields": {
+            "hourly_base": 19
+        }
+    },
+    {
+        "pk": 1,
+        "model": "equipment.base",
+        "fields": {
+            "category": "Personal Tools",
+            "slug": "personal-tools"
+        }
+    },
+    {
+        "model": "stock.company", 
+        "pk": 1, 
+        "fields": {
+            "slug": "any-store", 
+            "origin": null, 
+            "last_modified": null, 
+            "company": "Any store", 
+            "address": "Any", 
+            "company_phone": null, 
+            "contact_first_name": "", 
+            "contact_last_name": "", 
+            "phone": "", 
+            "email": "", 
+            "discontinued": null, 
+            "no_longer_use": false
+        }
+    },
+    {
+        "model": "schedule.rule", 
+        "pk": 1, 
+        "fields": {
+            "name": "Yearly", 
+            "frequency": "YEARLY"
+        }
+    },
+    {
+        "model": "schedule.rule", 
+        "pk": 2, 
+        "fields": {
+            "name": "Monthly", 
+            "frequency": "MONTHLY"
+        }
+    },
+    {
+        "model": "schedule.rule", 
+        "pk": 3, 
+        "fields": {
+            "name": "Weekly", 
+            "frequency": "WEEKLY"
+        }
+    },
+    {
+        "model": "schedule.rule", 
+        "pk": 4, 
+        "fields": {
+            "name": "Daily", 
+            "frequency": "DAILY"
+        }
+    },
+    {
+        "model": "schedule.rule", 
+        "pk": 5, 
+        "fields": {
+            "name": "Hourly", 
+            "frequency": "HOURLY"
+        }
+    },
+    {
+        "model": "schedule.calendar", 
+        "pk": 1, 
+        "fields": {
+            "name": "Staff Availability", 
+            "slug": "staff-availability"
+        }
+    },
+    {
+        "model": "schedule.calendar", 
+        "pk": 2, 
+        "fields": {
+            "name": "Production Scheduling", 
+            "slug": "production-scheduling"
+        }
+    }
+]

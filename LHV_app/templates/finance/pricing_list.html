@@ -1,0 +1,22 @@
+{% extends "list.html" %}
+
+{% block links %}
+    Current base hourly: 
+    {% if request.user.is_superuser %}
+        <a href="{% url "finance:hourly_base_update" 1 %}">
+            {{ hourly }}
+        </a>
+        <br>
+        <a href="{% url "finance:pricing_create" %}">New Pricing</a>
+    {% else %}
+        {{ hourly }}
+    {% endif %}
+{% endblock %}
+
+{% block body_options %}
+    {% for obj in object_list %}
+    <li class="list-group-item">
+        <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+    </li>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }} 
+                <a href="{% url "product:item_update" object.slug %}" 
+                    class="btn btn-default" role="button">Update
+                </a> 
+                {% if request.user.is_superuser %}
+                <a href="{% url "product:item_delete" object.slug %}" 
+                    class="btn btn-warning" role="button">Delete
+                </a>
+                {% endif %}
+                {% if object.image %}
+                <a href="{% url "product:image_detail" object.slug %}" 
+                    class="btn btn-default" role="button">
+                    <img src="{{ object.image.crop.22x22 }}" class="img-responsive"/></a>
+                {% else %}
+                    No image
+                {% endif %}
+            </legend>
+        </div>
+    </div>
+    <div class="list-group">
+        <li class="list-group-item">
+        {% if object.no_longer_available %}
+            <ul>
+                <p>As of: {{ object.discontinued }}, we 
+                    <strong>no longer uses this product</strong>
+                </p>
+            </ul>
+        {% elif object.order_now %}
+            <ul>
+                <p><strong><h3 style="color:#ff4000;">ORDER NOW</h3></strong></p>
+            </ul>
+        {% endif %}
+            <ul>Category: {{ object.base }}</ul>
+            <ul>Supplier: {{ object.supplier }}</ul>
+            <ul>Quantity: {{ object.quantity }} / Damaged: {{ object.units_damaged_or_lost }} / Pulled for job(s): {{ object.quantity_called_for }}</ul>
+            <ul>Since: {{ object.origin }}</ul>
+            <ul>Last modified: {{ object.last_modified }}</ul>
+        </li>
+            <li class="list-group-item">
+            <ul>Purchase cost: {{ object.get_cost }}</ul>
+            <ul>Install time: {{ object.get_time }}</ul>
+            <ul>Unit assesment method: {{ object.quantity_assesement }}</ul>
+        </li>         
+    </div>
+{% endblock %}
+

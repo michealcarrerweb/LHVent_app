@@ -1,0 +1,20 @@
+{% extends "list.html" %}
+
+{% block links %}
+	{% include 'customer_finance/_href.html' %}
+{% endblock %}
+
+{% block body_options %}
+    {% for obj in object_list %}
+    <li class="list-group-item">
+        <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+        {% if obj.invoice_quote.total_price_quoted and not obj.paid_in_full or obj.over_paid %}
+        Balance {% if obj.over_paid %}Owed: $<a href="{% url "customer_finance:alteration_create" obj.slug %}" style="color:red">{{ obj.get_balance_due }}</a>{% else %}Due: $<a href="{% url "customer_finance:alteration_create" obj.slug %}">{{ obj.get_balance_due }}</a>{% endif %}
+        {% endif %}
+        {% if not obj.invoice_quote.total_price_quoted %}
+         - <a href="{% url "customer_finance:invoice_give_quote" obj.slug %}" style="color:green">Quote</a>
+        {% endif %}
+    </li>
+	{% endfor %}
+    {% include 'customer_finance/_pagination.html' %}
+{% endblock %}

@@ -1,0 +1,133 @@
+{% load i18n %}
+{% load account_tags %}
+
+<ul class="nav navbar-nav pull-right">
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% if request.user.is_staff and request.user.is_active %}{% user_display request.user %}{% elif request.user.is_client and request.user.is_active %}Welcome {% user_display request.user %}!{% else %}Welcome{% endif %}</a>
+      
+      <ul class="dropdown-menu">
+        <li>
+            <a href="/">{% trans "Home" %}</a>
+        </li>
+        <li>
+            <a href="/">{% trans "About" %}</a>
+        </li>
+        <li>
+            <a href="/">{% trans "Contact" %}</a>
+        </li>
+        {% if request.user.is_authenticated and request.user.is_active %}
+        <li>
+            <form class="navbar-form">
+              <div class="form-group">
+                <input type="text" class="form-control" placeholder="Search">
+              </div>
+              <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+        </li>
+        <li>
+            <a href="{% url 'account_settings' %}">{% trans "Settings" %}</a>
+        </li>
+        <li>
+            <a href="{% url 'account_logout' %}">{% trans "Log out" %}</a>
+        </li>
+        {% if request.user.is_superuser %}
+            <li>
+                <a href="/dgrt/">{% trans "Admin" %}</a>
+            </li>
+        {% endif %}
+        {% endif %}
+      </ul>
+    </li>
+    {% if request.user.is_authenticated and request.user.is_active %}
+        {% if request.user.is_staff %}
+            {% if request.user.is_financial or request.user.is_superuser %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Finance" %}</a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{% url "customer_finance:invoice_lists" "active" %}">{% trans "Customer Invoices" %}</a></li>
+                    <li><a href="{% url "operation_finance:invoice_owed_list" %}">{% trans "Operational Invoices" %}</a></li>
+                    <li><a href="{% url "finance:main_ledger_detail" 1 %}">{% trans "Master Ledger" %}</a></li>
+                    <li><a href="{% url "finance:pricing_list" %}">{% trans "Pricing Option" %}</a></li>
+                  </ul>
+                </li>
+            {% endif %}
+            {% if request.user.is_manager or request.user.is_superuser %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Personnel" %}</a>
+                  <ul class="dropdown-menu">
+                    <li class="dropdown-header">Clients</li>
+                    <li><a href="{% url 'time_log:client_list' %}">{% trans "Active Clients List" %}</a></li>
+                    <li><a href="#">{% trans "Active Clients List" %}</a></li>
+                    <li><a href="#">{% trans "Add Client" %}</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li class="dropdown-header">Staff</li>
+                    <li><a href="{% url 'time_log:staff_list' %}">{% trans "Staff List" %}</a></li>
+                    <li><a href="#">{% trans "Add Staff" %}</a></li>
+                    <li><a href="#">{% trans "#" %}</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Work Orders" %}</a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{% url 'work_order:order_list' %}">{% trans "Order List" %}</a></li>
+                    <li><a href="#">{% trans "Today's Orders" %}</a></li>
+                    <li><a href="#">{% trans "Un-balanced Orders" %}</a></li>
+                  </ul>
+                </li>
+                <li>
+                    <a href="#">{% trans "Calendars" %}</a>
+                </li>
+            {% endif %}
+            {% if request.user.is_service or request.user.is_manager or request.user.is_superuser %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Services" %}</a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{% url 'service:base_service_list' %}">{% trans "By Base Categories" %}</a></li>
+                    <li><a href="{% url 'service:service_list' %}">{% trans "All Services" %}</a></li>
+                  </ul>
+                </li>
+            {% endif %}
+            {% if request.user.is_warehouse or request.user.is_manager or request.user.is_superuser %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Products" %}</a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{% url 'product:base_product_list' %}">{% trans "By Base Categories" %}</a></li>
+                    <li><a href="{% url 'product:item_list' %}">{% trans "Full Product List" %}</a></li>
+                    <li><a href="{% url 'company:company_list' %}">{% trans "Suppliers" %}</a></li>
+                  </ul>
+                </li>
+            {% endif %}
+            {% if request.user.is_maintenance or request.user.is_manager or request.user.is_superuser %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Equipment" %}</a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{% url 'equipment:base_list' %}">{% trans "By Base Categories" %}</a></li>
+                    <li><a href="{% url 'company:company_list' %}">{% trans "Suppliers" %}</a></li>
+                  </ul>
+                </li>
+            {% endif %}
+        {% endif %}
+    {% if request.user.is_client %}
+        <li>
+            <a href="/">{% trans "My Schedule" %}</a>
+        </li>
+        <li>
+            <a href="/">{% trans "Communicate" %}</a>
+        </li>
+        <li>
+            <a href="/">{% trans "Cart" %}</a>
+        </li>
+    {% endif %}  
+    {% if request.user.is_staff and request.user.is_active %}
+        <li>
+            <a href="#">{% trans "My Schedule" %}</a>
+        </li>
+    {% endif %}
+    {% else %}
+        <li><a href="{% url "account_login" %}">{% trans "Log in" %}</a></li>
+        {% if ACCOUNT_OPEN_SIGNUP %}
+            <li><a href="{% url "account_signup" %}">{% trans "Sign up" %}</a></li>
+        {% endif %}
+    {% endif %}
+</ul>
+    

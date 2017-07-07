@@ -1,0 +1,33 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+{% load i18n %}
+{% block head_title %}{% trans "Available Calendars" %}{% endblock %}
+{% block full %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <legend>
+        Calenders
+          <a href="{% url "calendar_create" %}" class="btn btn-default" role="button">Add</a>
+      </legend>
+  </div>
+  <div class="panel-body">
+    {% for cal in object_list %}
+    <li class="list-group-item">
+      {% if cal.pk != 1 and cal.pk != 2 %}
+      <a href="{% url "calender_detail" cal.slug %}">
+      {% endif %}
+        <b>{{ cal }}</b>
+      </a> :
+      <a href="{% url "day_calendar" cal.slug %}">
+            {% trans "Today" %}
+      </a> -  
+      <a href="{% url "month_calendar" cal.slug %}">
+            {% trans "This Month" %}
+      </a> - 
+      <a href="{% url "year_calendar" cal.slug %}">
+            {% trans "This Year" %}
+      </a>
+    </li>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+
+{% block full %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <legend>{{ object }} 
+            {% if object.id != 1 and object.id != 2 %}
+            <a href="{% url "edit_calender" object.slug %}" 
+                class="btn btn-default" role="button">Update
+            </a>
+            {% endif %}
+            {% if request.user.is_superuser and object.id != 1 and object.id != 2 %}
+            <a href="{% url "delete_calender" object.slug %}" 
+                class="btn btn-warning" role="button">Delete
+            </a>
+            {% endif %}
+        </legend>
+    </div>
+</div>
+{% endblock %}

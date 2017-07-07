@@ -1,0 +1,24 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+{% load i18n %}
+
+
+{% load bootstrap %}
+
+{% block full %}
+<div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }}</legend>
+<b>{% trans "Create or change occurrence. All fields are required." %}</b>
+<br><br>
+<form action="" method="post">
+  {% csrf_token %}
+  <table>
+    {{ form|bootstrap }}
+  </table>
+  <br>
+  <input type="submit" value="{% trans "Save" %}">
+  <input type="submit" name="cancel" value="Cancel">
+</form>
+</div>
+</div>
+{% endblock %}

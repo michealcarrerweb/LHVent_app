@@ -1,0 +1,31 @@
+{% extends "invoice_list.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}</legend>
+            <a href="{% url "operation_finance:invoice_create"%}">
+                New Invoice
+            </a>
+        </div>
+    </div>
+        {% for obj in object_list %}
+            <li class="list-group-item">
+                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+                 - <a href="{% url "operation_finance:alteration_create" obj.slug %}">
+                     Settle
+                </a> - Due by: {{ obj.due_by }}
+                {% if obj.conflict %}
+                <br>{{ obj.log }}
+                {% endif %}
+                {% if obj.total_price_quoted and not obj.paid_in_full %}
+                {% endif %}        
+            </li>
+        {% endfor %}
+{% endblock %}

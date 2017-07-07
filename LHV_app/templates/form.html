@@ -1,0 +1,47 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }} 
+                {% block edit %}{% endblock %}
+                {% if object.image %}
+                <a href="{% url "product:image_update" object.slug %}" 
+                    class="btn btn-default" role="button">
+                    <img src="{{ object.image.crop.22x22 }}" class="img-responsive"/></a>
+                {% endif %}
+                {% if object.extra %}
+                    {{ object.extra }}
+                {% endif %}
+            </legend>
+            {% if balance %}
+            <strong style="color:#ff4000;">Current balance due: ${{ balance }}</strong>
+            {% endif %}
+        </div>
+        <div class="list-group">
+            <form method="POST" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|bootstrap }}
+                <input class="btn btn-default" 
+                       type="button" value="{% trans "Cancel" %}" 
+                       onclick="window.history.go(-1);"/>
+                <button class="btn btn-primary" type="submit">{% trans "Submit" %}</button>
+                
+            </form>
+        </div> 
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#id_username').focus();
+        });
+    </script>
+{% endblock %}

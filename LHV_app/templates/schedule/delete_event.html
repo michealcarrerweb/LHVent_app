@@ -1,0 +1,17 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+{% load i18n %}
+
+{% block full %}
+<div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }}</legend>
+<h1>{% trans "Delete" %}</h1>
+{% trans "Are you sure that you really want to delete it?" %}
+
+<form action="" method="post">{% csrf_token %}
+    <input type="submit" value="Confirm">
+    <input type="submit" name="cancel" value="Cancel">
+</form>
+</div>
+</div>
+{% endblock %}

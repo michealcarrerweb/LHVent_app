@@ -1,0 +1,109 @@
+
+{% extends "service/service_menu.html" %}
+
+{% load i18n %}
+{% load bootstrap %}
+
+{% block body_class %}service services-detail{% endblock %}
+
+{% block head_title %}{% trans "Service" %}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }} 
+                <a href="{% url "work_order:order_update" object.slug %}" 
+                    class="btn btn-default" role="button">Update
+                </a>
+                {% if request.user.is_superuser %}
+                    {% if not object.work_initiated and not object.work_completed and not object.closed_out %}
+                    <a href="{% url "work_order:order_delete" object.slug %}" 
+                        class="btn btn-warning" role="button">Delete
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </legend>
+            <ul><strong>{{ object.description }}</strong></ul>
+            {% if object.postponed %}
+            <ul>
+                <h3>This order is  
+                    <strong>postponed</strong>
+                </h3>
+            </ul>
+            {% endif %}
+            <li class="list-group-item">
+                <ul>Cost: ${{ all_cost|floatformat:2 }}</ul>
+                <ul>Time: {{ all_time|floatformat:2 }}</ul>
+            </li>
+            <li class="list-group-item">
+                <ul>Created: {{ object.order_created }}</ul>
+                <ul>{% if object.pulled %}
+                        Parts pulled on {{ object.pulled }}
+                    {% else %}
+                        Parts not pulled yet
+                    {% endif %} 
+                </ul>
+                <ul>{% if object.scheduled %}
+                        Scheduled for <a href="#">
+                        #</a>
+                    {% else %}
+                        <a href="#">
+                        Schedule now</a>
+                    {% endif %}
+                </ul>
+                <ul>{% if object.work_initiated %}
+                        Work initiated on {{ object.work_initiated }}
+                    {% endif %} 
+                </ul>
+                <ul>{% if object.work_completed %}
+                        Work completed on {{ object.work_completed }}
+                    {% endif %} 
+                </ul>
+                <ul>{% if object.closed_out %}
+                        Order closed out on {{ object.closed_out }}
+                    {% else %}
+                        Work order not closed out
+                    {% endif %}
+                </ul>
+            </li>
+            <li class="list-group-item">
+                <ul>
+                <dt>Services:</dt>
+                {% if object.get_service_list %}
+                    <dd>{% autoescape on %}
+                            {{ object.get_service_list | linebreaksbr }}
+                        {% endautoescape %}
+                    </dd>
+                  {% else %}
+                    <dd>None</dd>
+                  {% endif %}
+                </ul>
+                {% if object.note %}
+                <ul>                
+                <dt>Notes:</dt>                
+                    <dd>{% autoescape on %}
+                            {{ object.note | linebreaksbr }}
+                        {% endautoescape %}
+                    </dd>                 
+                </ul>
+                {% endif %}
+            </li>
+            <li class="list-group-item">
+                <ul>
+                    <dl>
+                      <dt>Job history:</dt>
+                      {% if object.job_history %}
+                        <dd>{% autoescape on %}
+                                {{ object.job_history | linebreaksbr }}
+                            {% endautoescape %}
+                        </dd>
+                      {% else %}
+                        <dd>None</dd>
+                      {% endif %}                       
+                    </dl>
+                </ul>
+            </li>  
+        </div>
+    </div>
+
+{% endblock %}

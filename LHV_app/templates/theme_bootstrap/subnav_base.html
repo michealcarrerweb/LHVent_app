@@ -1,0 +1,40 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+
+
+{% block body_base %}
+    {% if request.user.is_active and request.user.is_authenticated %}
+    <section id="content_body">
+        <div class="container">
+            {% include "_messages.html" %}
+            <div class="row">
+                {% block full %}
+                <div class="col-md-8 columns">
+                    
+                        {% block body %}
+                        {% endblock %}
+                   
+                </div>
+                <div class="col-md-4 columns">
+                    
+                        {% block subnav %}
+                        {% endblock %}
+                    
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </section>
+    {% else %}
+    <section id="content_body">
+    <div class="panel-heading">
+        <strong>{% trans "You do not have permision for this operation" %}</strong>
+        <input class="btn-xs btn-warning" 
+                       type="button" value="{% trans "Go Back" %}" 
+                       onclick="window.history.go(-1);"/>
+    </div>
+    </section>
+    {% endif %}
+{% endblock %}
+
+

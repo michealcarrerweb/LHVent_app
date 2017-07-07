@@ -1,0 +1,32 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}
+                <a href="{% url 'equipment:base_create' %}" 
+                class="btn btn-default" role="button">Add
+                </a>
+            </legend>
+        </div>
+    </div>
+        {% for obj in object_list %}
+            <li class="list-group-item">
+                {% if obj.slug != 'personal-tools' %}
+                <a href="{{ obj.get_absolute_url }}">
+                {{ obj }}</a>{% else %}{{ obj }}{% endif %}
+                <a href="{% url "equipment:job_tool_and_category_list" obj.slug %}" 
+                    class="btn btn-default" role="button">List all
+                </a>
+                <a href="{% url 'equipment:job_tool_create' obj.slug %}" 
+                    class="btn btn-default" role="button">Add tool to {{ obj.category }}
+                </a>
+            </li>
+        {% endfor %}
+{% endblock %}

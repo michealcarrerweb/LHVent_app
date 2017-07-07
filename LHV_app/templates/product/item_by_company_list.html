@@ -1,0 +1,35 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}
+            <a href="{% url 'product:item_create' %}" 
+                class="btn btn-default" role="button">Add
+                </a>
+            </legend>
+        </div>
+        {% for obj in object_list %}
+        <div class="panel-body">
+            <li class="list-group-item">
+                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+            {% if obj.supplier.no_longer_use %}
+                 - supplier discontinued - {{ obj.discontinued }}
+            {% endif %}
+            {% if obj.no_longer_available %}
+                 - no longer use this product as of {{ obj.discontinued }}
+            
+            {% elif obj.order_now %}
+                 - ORDER NOW
+            {% endif %}  
+            </li>          
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

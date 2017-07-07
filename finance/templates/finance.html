@@ -1,0 +1,26 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+
+{% load i18n %}
+
+{% load crispy_forms_tags %}
+
+{% block body_class %}account{% endblock %}
+
+
+{% block subnav %}
+<div class="panel panel-default col-xs-12 col-md-8">
+    <div class="panel-heading"><strong>{% trans "Client Financial Information" %}</strong></div>
+    <div class="list-group">
+    	{{ title_message }}
+    	{% for client in client_list %}
+    		<li><a href="{{ client.id }}">{{ client }}</a></li>
+    	{% endfor %}
+        <!-- <form method='POST' action=''>{% csrf_token %}
+            {{ form|crispy }}
+            <input type='submit' value='Submit'/> 
+        </form> -->
+    </div>
+
+</div>
+{% endblock %}
+

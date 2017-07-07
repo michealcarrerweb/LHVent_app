@@ -1,0 +1,15 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Server Error" %}{% endblock %}
+
+{% block body %}
+    <header class="jumbotron subhead" id="overview">
+        <h1>{% trans "Sorry" %}</h1>
+        <p class="lead">{% trans "You do not have permision for this operation" %}</p>
+        <input class="btn btn-warning" 
+	               type="button" value="{% trans "Go Back" %}" 
+	               onclick="window.history.go(-1);"/>
+    </header>
+{% endblock %}

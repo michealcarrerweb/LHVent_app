@@ -1,0 +1,12 @@
+<a href="{% url "customer_finance:invoice_create"%}">
+    New Invoice
+</a><br>
+<a href="{% url "customer_finance:invoice_lists" "owed" %}">
+    Invoices wth Balances
+</a><br>
+<a href="{% url "customer_finance:invoice_lists" "conflicted" %}">
+    Invoices wth Conflicts
+</a><br>
+<a href="{% url "customer_finance:invoice_lists" "active" %}">
+    All Active Invoices
+</a>

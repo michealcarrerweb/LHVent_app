@@ -1,0 +1,21 @@
+{% extends "theme_bootstrap/subnav_base.html" %}
+
+{% load i18n %}
+
+{% block subnav %}
+<div class="panel panel-default">
+    <div class="panel-heading"><strong>{% trans "Daily Log" %}</strong></div>
+</div>
+
+    <div class="list-group">
+        <a class="list-group-item" href="#">
+            {% trans "#" %}
+        </a>
+        <a class="list-group-item" href="#">
+            {% trans "#" %}
+        </a>
+        <a class="list-group-item" href="#">
+            {% trans "#" %}
+        </a>
+    </div>
+{% endblock %}

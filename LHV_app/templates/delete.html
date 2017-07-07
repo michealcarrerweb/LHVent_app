@@ -1,0 +1,28 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+  <div class="panel panel-default">
+      <div class="panel-heading">
+        <legend>{% trans "Are you sure that you want to delete " %}"{{ object }}"?</p>
+        </legend>
+      </div>
+      <div class="list-group">
+          <li class="list-group-item">
+            <strong>{% trans "Doing so will delete all other related information!" %}</strong>
+          </li>
+          <br>
+      
+    	    <form method="post" action="" autocapitalize="off">
+    	        {% csrf_token %}
+                <input class="btn btn-default" 
+                           type="button" value={% trans "Cancel" %} 
+                           onclick="window.history.go(-1);"/>
+    	        <button type="submit" class="btn btn-danger">Delete</button>
+    	    </form>
+      </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}
+                <a href="{% url 'work_order:order_add' %}" 
+                class="btn btn-default" role="button">Add
+                </a> 
+            </legend>
+        </div>
+        <div class="panel-body">
+        {% for obj in object_list %}
+            <li class="list-group-item">
+                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+                    {% if obj.postponed %}
+                         - Order is postponed
+                    {% elif not obj.pulled %}
+                         - <a href="{% url 'work_order:order_pulled' obj.slug %}" >Pull</a>
+                    {% elif not obj.work_completed %}
+                         - <a href="{% url 'work_order:work_completed' obj.slug %}" >Completed</a>
+                    {% endif %}                
+            </li>
+        {% endfor %}
+        </div>
+    </div>
+{% endblock %}

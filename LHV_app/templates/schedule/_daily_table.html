@@ -1,0 +1,43 @@
+{% load scheduletags %}
+<style>
+/*.btn-primary a strong{
+  color: #070a09;
+  border: #ffffff;
+}01050c
+*/
+.btn-primary {
+  color: #070a09;
+  border: #ffffff;
+  background: #d7e8e0;
+
+}
+
+.btn-primary:hover {
+  color: #414449;
+  border: #ffffff;
+  background: #e8efec;
+}
+</style>
+<div class="table-responsive">
+<table class="table">
+    {% for slot in slots %}
+    <tr>
+    <td class="col-sm-1">
+      <span class="time">{{ slot.start|time:"G:i" }}</span>
+      {% if addable %}
+      {% create_event_url calendar slot.start %}
+      {% endif %}
+    </td>
+    <td class="col-lg">
+        {% for occ in slot.occurrences %}
+        <button type="button"  class="btn {% if occ.cancelled %} btn-danger {%else%} btn-primary {% endif %}" data-toggle="modal" data-target="#{% hash_occurrence occ %}">
+              
+              {% title occ %}
+        </button>
+      {% include 'schedule/_detail.html' with occurrence=occ %}
+      {% endfor %}
+    </td>
+  </tr>
+    {% endfor %}
+</table>
+</div>

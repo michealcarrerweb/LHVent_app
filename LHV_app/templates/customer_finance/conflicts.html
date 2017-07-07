@@ -1,0 +1,17 @@
+{% extends "list.html" %}
+
+{% block links %}
+	{% include 'customer_finance/_href.html' %}
+{% endblock %}
+
+{% block body_options %}
+    {% for obj in object_list %}
+        <li class="list-group-item">
+            Conflict: <a href="{{ obj.get_absolute_url }}">{{ obj }}</a> -- 
+            On: {{ obj.origin }}
+             - <a href="{% url "customer_finance:conflict_resolve" obj.slug %}">
+                 Resolve        
+        </li>
+    {% endfor %}
+    {% include 'customer_finance/_pagination.html' %}
+{% endblock %}

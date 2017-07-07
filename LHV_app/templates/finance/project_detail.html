@@ -1,0 +1,57 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }} - {{ object.ledger.ledger_name }}
+                <a href="{% url "finance:project_update" object.slug %}" 
+                    class="btn btn-default" role="button">Update
+                </a>
+                {% if request.user.is_superuser %}
+                    <a href="{% url "finance:project_delete" object.slug %}" 
+                        class="btn btn-warning" role="button">Delete
+                    </a>
+                {% endif %}
+            </legend>
+            {% if object.conflict %}
+            <ul>
+                <h3 style="color:#ff4000;">There is a  
+                    <strong>conflict pending</strong>, see notes
+                </h3>
+            </ul>
+            {% endif %}
+        </div>
+        {% if object.note %}
+        <li class="list-group-item">
+            <ul>Notes: {{ object.note }}</ul>
+        </li>
+        {% endif %}
+        <li class="list-group-item">
+            <ul>Price quote: {{ object.price_quote }}</ul>
+            <ul>Cost: {{ all_cost|floatformat:2 }}</ul>
+            <ul>Time: {{ all_time|floatformat:2 }}</ul>
+        </li>
+        <li class="list-group-item">
+            <ul>
+                <dl>
+                  <dt>Order history:</dt>
+                  {% if object.log %}
+                    <dd>{% autoescape on %}
+                            {{ object.log | linebreaksbr }}
+                        {% endautoescape %}
+                    </dd>
+                  {% else %}
+                    <dd>None</dd>
+                  {% endif %}                       
+                </dl>
+            </ul>
+        </li>         
+    </div>
+{% endblock %}
+

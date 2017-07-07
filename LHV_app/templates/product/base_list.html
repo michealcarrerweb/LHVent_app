@@ -1,0 +1,32 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}
+                <a href="{% url 'product:base_product_create' %}" 
+                class="btn btn-default" role="button">Add
+                </a>
+            </legend>
+        </div>
+    </div>
+        {% for obj in object_list %}
+            <li class="list-group-item">
+                <a href="{{ obj.get_absolute_url }}">{% if obj.base %} 
+                    {{ obj.base }} - {% endif %} {{ obj }}</a>
+                <a href="{% url "product:category_item_list" obj.slug %}" 
+                    class="btn btn-default" role="button">List
+                </a>
+                <a href="{% url 'product:base_item_create' obj.slug %}" 
+                    class="btn btn-default" role="button">Add product to {{ obj.category }}
+                </a>
+            </li>
+        {% endfor %}
+{% endblock %}
+

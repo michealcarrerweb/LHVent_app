@@ -1,0 +1,8 @@
+{% for obj in object_list %}
+<div class="panel-body">
+    <li class="list-group-item">
+        <a href="{{ obj.get_absolute_url }}">{% if obj.base %} 
+        	{{ obj.base }} - {% endif %} {{ obj }}</a>
+    </li>
+</div>
+{% endfor %}

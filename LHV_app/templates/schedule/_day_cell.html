@@ -1,0 +1,37 @@
+{% load scheduletags %}
+<style>
+.btn-primary a strong{
+  color: #070a09;
+  border: #ffffff;
+}
+
+.btn-primary {
+  color: #070a09;
+  border: #ffffff;
+  background: #d7e8e0;
+
+}
+
+.btn-primary:hover {
+  color: #d7e0ef;
+  border: #ffffff;
+  background: #e8efec;
+}
+</style>
+
+{% ifnotequal day.start.month month.start.month %}
+  <td class="muted"></td>
+{% else %}
+  {% if day.has_occurrences %}
+    <td class="btn-primary">
+  {% else %}
+    <td>
+  {% endif %}
+  <a href="{% url "day_calendar" calendar.slug %}{% querystring_for_date day.start 3 %}">
+    <strong>{{day.start.day}}</strong>
+  </a>
+  {% ifnotequal size "small" %}
+    {% include "schedule/_day_cell_big.html" %}
+  {% endifnotequal %}
+</td>
+{% endifnotequal %}
