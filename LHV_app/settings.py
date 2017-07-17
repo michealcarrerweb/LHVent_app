@@ -7,21 +7,11 @@ BASE_DIR = PACKAGE_ROOT
 
 DEBUG = True
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'LHVent_app',
-#         'USER': 'michealcarrer',
-#         'PASSWORD': 'Treehouse1010',
-#         'HOST': 'localhost',
-#         'PORT': '',
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'lhvent_app2',
-        'USER': 'michealcarr',
+        'NAME': 'LHVent_app',
+        'USER': 'michealcarrer',
         'PASSWORD': 'Treehouse1010',
         'HOST': 'localhost',
         'PORT': '',
