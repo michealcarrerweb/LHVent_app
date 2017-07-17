@@ -11,6 +11,7 @@ django-scheduler==0.8.5
 django-user-accounts==2.0.1
 django-versatileimagefield==1.7.1
 djangorestframework==3.6.3
+gunicorn==19.7.1
 icalendar==3.11.4
 jsonfield==2.0.2
 olefile==0.44
@@ -19,6 +20,7 @@ Pillow==4.0.0
 pinax-eventlog==1.1.2
 pinax-theme-bootstrap==8.0.1
 pinax-webanalytics==3.0.0
+psycopg2==2.7.1
 python-dateutil==2.6.0
 pytz==2017.2
 reportlab==3.4.0

@@ -12,13 +12,18 @@ from .views import (
 app_name = 'company'
 urlpatterns = [
     url(r'^company/$', CompanyList.as_view(), 
-    	name="company_list"),	
+    	name="company_list"
+    ),	
     url(r'^company/create/$', CompanyCreate.as_view(),
-    	name="company_create"),	
+    	name="company_create"
+    ),	
     url(r'^company/(?P<slug>[-\w]+)/$', CompanyDetail.as_view(),
-    	name="company_detail"),
+    	name="company_detail"
+    ),
     url(r'^company/(?P<slug>[-\w]+)/update/$', CompanyUpdate.as_view(),
-    	name="company_update"),
+    	name="company_update"
+    ),
     url(r'^company/(?P<slug>[-\w]+)/delete/$', CompanyDelete.as_view(),
-    	name="company_delete"),
+    	name="company_delete"
+    ),
 ]

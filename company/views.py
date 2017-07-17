@@ -46,7 +46,8 @@ class CompanyList(CompanyAuthMixin, ListView):
 
 class CompanyMessageMixin(CompanyAuthMixin, SuccessMessageMixin):
 	template_name = "form.html"
-	success_url = reverse_lazy('product:company_list')
+	success_url = reverse_lazy('company:company_list')
+	user_check_failure_path = '403'
 
 
 class CompanyCreate(CompanyMessageMixin, CreateView):
@@ -65,8 +66,7 @@ class CompanyUpdate(CompanyMessageMixin, UpdateView):
 	success_message = "%(company)s was successfully updated"
 	form_class = CompanyUpdateForm
 	title = "Supplier Update"
-	user_check_failure_path = '403'
-
+	
 	def get_success_message(self, cleaned_data):
 		return self.success_message % dict(
 			cleaned_data,
@@ -82,8 +82,9 @@ class CompanyUpdate(CompanyMessageMixin, UpdateView):
 class CompanyDelete(SuperUserCheckMixin, DeleteView):
 	model = Company
 	template_name = "delete.html"
-	success_url = reverse_lazy('product:company_list')
+	success_url = reverse_lazy('company:company_list')
 	success_message = "Company was successfully deleted"
+	user_check_failure_path = '403'
 
 	def dispatch(self, request, *args, **kwargs):
 		if "any-store" in request.path:

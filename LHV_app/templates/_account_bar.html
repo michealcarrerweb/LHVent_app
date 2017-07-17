@@ -40,13 +40,14 @@
     </li>
     {% if request.user.is_authenticated and request.user.is_active %}
         {% if request.user.is_staff %}
+        <li><a href="{% url 'client_signup' %}">{% trans "Add Client" %}</a></li>
             {% if request.user.is_financial or request.user.is_superuser %}
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Finance" %}</a>
                   <ul class="dropdown-menu">
                     <li><a href="{% url "customer_finance:invoice_lists" "active" %}">{% trans "Customer Invoices" %}</a></li>
-                    <li><a href="{% url "operation_finance:invoice_owed_list" %}">{% trans "Operational Invoices" %}</a></li>
-                    <li><a href="{% url "finance:main_ledger_detail" 1 %}">{% trans "Master Ledger" %}</a></li>
+                    <li><a href="#">{% trans "Operational Invoices" %}</a></li>
+                    <li><a href="#">{% trans "Master Ledger" %}</a></li>
                     <li><a href="{% url "finance:pricing_list" %}">{% trans "Pricing Option" %}</a></li>
                   </ul>
                 </li>
@@ -56,21 +57,19 @@
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Personnel" %}</a>
                   <ul class="dropdown-menu">
                     <li class="dropdown-header">Clients</li>
-                    <li><a href="{% url 'time_log:client_list' %}">{% trans "Active Clients List" %}</a></li>
+                    <li><a href="{% url 'client_list' %}">{% trans "Active Clients List" %}</a></li>
                     <li><a href="#">{% trans "Active Clients List" %}</a></li>
-                    <li><a href="#">{% trans "Add Client" %}</a></li>
+                    <li><a href="{% url 'client_signup' %}">{% trans "Add Client" %}</a></li>
                     <li role="separator" class="divider"></li>
                     <li class="dropdown-header">Staff</li>
-                    <li><a href="{% url 'time_log:staff_list' %}">{% trans "Staff List" %}</a></li>
-                    <li><a href="#">{% trans "Add Staff" %}</a></li>
-                    <li><a href="#">{% trans "#" %}</a></li>
+                    <li><a href="{% url 'staff_list' %}">{% trans "Staff List" %}</a></li>
+                    <li><a href="{% url 'staff_signup' %}">{% trans "Add Staff" %}</a></li>
                   </ul>
                 </li>
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Work Orders" %}</a>
                   <ul class="dropdown-menu">
                     <li><a href="{% url 'work_order:order_list' %}">{% trans "Order List" %}</a></li>
-                    <li><a href="#">{% trans "Today's Orders" %}</a></li>
                     <li><a href="#">{% trans "Un-balanced Orders" %}</a></li>
                   </ul>
                 </li>
@@ -107,7 +106,7 @@
                 </li>
             {% endif %}
         {% endif %}
-    {% if request.user.is_client %}
+    {% if request.user.is_staff == False %}
         <li>
             <a href="/">{% trans "My Schedule" %}</a>
         </li>

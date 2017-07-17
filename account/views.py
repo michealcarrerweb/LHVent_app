@@ -13,27 +13,37 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import FormView
 
+from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
+from django.core.urlresolvers import reverse_lazy
 from django.contrib import auth, messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
+from django.views.generic.edit import CreateView, UpdateView 
+from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
 
 from account import signals
 from account.compat import reverse, is_authenticated
 from account.conf import settings
-from account.forms import SignupForm, LoginUsernameForm
+from account.forms import SignupForm, LoginUsernameForm, StaffSignupForm, BasicAddress
 from account.forms import ChangePasswordForm, PasswordResetForm, PasswordResetTokenForm
-from account.forms import SettingsForm
+from account.forms import SettingsForm, StaffSettingsForm
 from account.hooks import hookset
 from account.mixins import LoginRequiredMixin
 from account.models import *
 from account.serializers import AccountSerializer, UserSerializer
 from account.utils import default_redirect, get_form_data
 from rest_framework import viewsets, generics, mixins
-from source_utils.permission_mixins import SuperUserCheckMixin, ManagerCheckMixin
-    
+from source_utils.permission_mixins import (
+    SuperUserCheckMixin, 
+    ManagerCheckMixin, 
+    StaffCheckMixin, 
+)
+
 
 class PasswordMixin(object):
     """
@@ -109,7 +119,10 @@ class PasswordMixin(object):
 
     def create_password_history(self, form, user):
         if settings.ACCOUNT_PASSWORD_USE_HISTORY:
-            password = form.cleaned_data[self.form_password_field]
+            if self.init_password:
+                password = self.init_password
+            else:
+                password = form.cleaned_data[self.form_password_field]
             PasswordHistory.objects.create(
                 user=user,
                 password=make_password(password)
@@ -122,22 +135,6 @@ class AccountViewAPI(viewsets.ModelViewSet):
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-
-# class AccountCreateViewAPI(generics.CreateAPIView):
-#     serializer_class = UserSerializer
-
-
-# class AccountUpdateViewAPI(generics.RetrieveUpdateAPIView):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-
-
-# class AccountDeleteViewAPI(mixins.RetrieveModelMixin, mixins.DestroyModelMixin):
-#     queryset = User.objects.all()
-    
-#     def get(self, request, *args, **kwargs):
-#         return self.destroy(request, *args, **kwargs)
 
 
 class SignupView(PasswordMixin, FormView):
@@ -179,6 +176,11 @@ class SignupView(PasswordMixin, FormView):
         self.kwargs = kwargs
         self.setup_signup_code()
         return super(SignupView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(SignupView, self).get_context_data(**kwargs)
+        context['title'] = "Welcome!"
+        return context
 
     def setup_signup_code(self):
         code = self.get_code()
@@ -301,7 +303,7 @@ class SignupView(PasswordMixin, FormView):
             user=self.created_user, 
             create_email=False
         )
-        new_account.initial_password = form.cleaned_data.get("initial_password")
+        # new_account.initial_password = form.cleaned_data.get("initial_password")
         new_account.spouse_name = form.cleaned_data.get("spouse_name")
         new_account.street_address = form.cleaned_data.get("street_address")
         new_account.city = form.cleaned_data.get("city")
@@ -389,6 +391,139 @@ class SignupView(PasswordMixin, FormView):
         return self.response_class(**response_kwargs)
 
 
+class ClientSignupView(StaffCheckMixin, SignupView):
+    form_class = BasicAddress
+
+    def __init__(self, *args, **kwargs):
+        self.init_password = self.create_temp_password()
+        super(ClientSignupView, self).__init__(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientSignupView, self).get_context_data(**kwargs)
+        context['title'] = "CLIENT SIGN-UP"
+        return context
+
+    def get(self, *args, **kwargs):
+        return super(FormView, self).get(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        return super(FormView, self).post(*args, **kwargs)
+
+    def form_invalid(self, form):
+        return super(FormView, self).form_invalid(form)
+
+    def form_valid(self, form):
+        self.created_user = self.create_client_user(form, commit=False)
+        # prevent User post_save signal from creating an Account instance
+        # we want to handle that ourself.
+        self.created_user._disable_account_creation = True
+        self.created_user.save()
+        # self.use_signup_code(self.created_user)
+        email_address = self.create_email_address(form)
+        if settings.ACCOUNT_EMAIL_CONFIRMATION_REQUIRED and not email_address.verified:
+            self.created_user.is_active = False
+            self.created_user.save()
+        self.create_client_account(form)
+        self.create_password_history(form, self.created_user)
+        return redirect(self.get_success_url())
+
+    def create_client_user(self, form, commit=True, model=None, **kwargs):
+
+        User = model
+        if User is None:
+            User = get_user_model()
+        user = User(**kwargs)
+        user.username = form.cleaned_data.get("username")
+        user.email = form.cleaned_data["email"].strip()
+        user.first_name = form.cleaned_data.get("first_name")
+        user.last_name = form.cleaned_data.get("last_name")
+        user.is_active = False       
+        user.set_password(self.init_password)
+        if commit:
+            user.save()
+        return user
+
+    def create_client_account(self, form):
+        new_account = Account.create(
+            request=self.request, 
+            user=self.created_user, 
+            create_email=False
+        )
+        new_account.initial_password = self.init_password
+        new_account.spouse_name = form.cleaned_data.get("spouse_name")
+        new_account.street_address = form.cleaned_data.get("street_address")
+        new_account.city = form.cleaned_data.get("city")
+        new_account.state = form.cleaned_data.get("state")
+        new_account.zip_code = form.cleaned_data.get("zip_code")
+        new_account.main_phone = form.cleaned_data.get("main_phone")
+        new_account.alt_phone = form.cleaned_data.get("alt_phone")       
+        new_account.save()
+        
+        return new_account
+
+    def create_temp_password(self):
+        word_list = [
+            "myvent", "nofire", "besafe", "clean"
+        ]
+        numbers = range(0,100)
+        characters = [
+            "@", "#", "%", "$", "&"
+        ]
+        options = [word_list, numbers, characters]
+        random_password = "$"
+        choice_options = range(0,3)
+
+        while 10 >= len(random_password) <= 12:
+            random_option = random.choice(choice_options)
+            random_password += str(random.choice(options[int(random_option)]))
+        return random_password
+
+
+class StaffSignupView(ManagerCheckMixin, ClientSignupView):
+    form_class = StaffSignupForm
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientSignupView, self).get_context_data(**kwargs)
+        context['title'] = "STAFF SIGN-UP"
+        return context
+
+    def form_valid(self, form):
+        self.created_user = self.create_staff_user(form, commit=False)
+        # prevent User post_save signal from creating an Account instance
+        # we want to handle that ourself.
+        self.created_user._disable_account_creation = True
+        self.created_user.save()
+        # self.use_signup_code(self.created_user)
+        email_address = self.create_email_address(form)
+        if settings.ACCOUNT_EMAIL_CONFIRMATION_REQUIRED and not email_address.verified:
+            self.created_user.is_active = False
+            self.created_user.save()
+        self.create_client_account(form)
+        self.create_password_history(form, self.created_user)
+        return redirect(self.get_success_url())
+
+    def create_staff_user(self, form, commit=True, model=None, **kwargs):
+
+        User = model
+        if User is None:
+            User = get_user_model()
+        user = User(**kwargs)
+        user.username = form.cleaned_data.get("username")
+        user.email = form.cleaned_data["email"].strip()
+        user.first_name = form.cleaned_data.get("first_name")
+        user.last_name = form.cleaned_data.get("last_name")       
+        user.set_password(self.init_password)
+        user.is_staff = True
+        user.is_financial = form.cleaned_data.get("is_financial")
+        user.is_manager = form.cleaned_data.get("is_manager")
+        user.is_warehouse = form.cleaned_data.get("is_warehouse")    
+        user.is_service = form.cleaned_data.get("is_service")
+        user.is_maintenance = form.cleaned_data.get("is_maintenance")
+        if commit:
+            user.save()
+        return user
+
+
 class LoginView(FormView):
 
     template_name = "account/login.html"
@@ -438,6 +573,14 @@ class LoginView(FormView):
 
     def form_valid(self, form):
         self.login_user(form)
+        if self.request.user.account.initial_password:
+            messages.add_message(
+                self.request, 
+                messages.INFO, 
+                "In order to use this site, PLEASE CHANGE OUR TEMPORARY PASSWORD. \
+                This is required for security reasons."
+            )
+            return redirect("account_password", permanent=True)
         self.after_login(form)
         return redirect(self.get_success_url())
 
@@ -592,6 +735,19 @@ class ChangePasswordView(PasswordMixin, FormView):
     form_password_field = "password_new"
     fallback_url_setting = "ACCOUNT_PASSWORD_CHANGE_REDIRECT_URL"
 
+    def get_form_class(self):
+        # @@@ django: this is a workaround to not having a dedicated method
+        # to initialize self with a request in a known good state (of course
+        # this only works with a FormView)
+        self.init_password = self.request.user.account.initial_password
+        return super(ChangePasswordView, self).get_form_class()
+
+    def get_initial(self):
+        initial = super(ChangePasswordView, self).get_initial()
+        if self.request.user.account.initial_password:
+            initial["password_current"] = self.init_password
+        return initial
+
     def get(self, *args, **kwargs):
         if not is_authenticated(self.request.user):
             return redirect("account_password_reset")
@@ -603,10 +759,12 @@ class ChangePasswordView(PasswordMixin, FormView):
         return super(ChangePasswordView, self).post(*args, **kwargs)
 
     def form_valid(self, form):
+        self.request.user.account.initial_password = None
+        self.request.user.account.save()
         self.change_password(form)
         self.create_password_history(form, self.request.user)
         self.after_change_password()
-        return redirect(self.get_success_url())
+        return redirect("home")
 
     def get_user(self):
         return self.request.user
@@ -773,18 +931,12 @@ class SettingsView(LoginRequiredMixin, FormView):
         return super(SettingsView, self).get_form_class()
 
     def get_initial(self):
-        # initial = super(SettingsView, self).get_initial()
-        # initial["username"] = self.request.user.username
-        # if self.primary_email_address:
-        #     initial["email"] = self.primary_email_address.email
-        # initial["timezone"] = self.request.user.account.timezone
-        # initial["language"] = self.request.user.account.language
-        # return initial
-
         initial = super(SettingsView, self).get_initial()
         initial["username"] = self.request.user.username
         if self.primary_email_address:
             initial["email"] = self.primary_email_address.email
+        initial["timezone"] = self.request.user.account.timezone
+        initial["language"] = self.request.user.account.language
         initial["first_name"] = self.request.user.first_name
         initial["spouse_name"] = self.request.user.account.spouse_name
         initial["last_name"] = self.request.user.last_name
@@ -836,10 +988,10 @@ class SettingsView(LoginRequiredMixin, FormView):
 
     def update_account(self, form):
         fields = {}
-        # if "timezone" in form.cleaned_data:
-        #     fields["timezone"] = form.cleaned_data["timezone"]
-        # if "language" in form.cleaned_data:
-        #     fields["language"] = form.cleaned_data["language"]
+        if "timezone" in form.cleaned_data:
+            fields["timezone"] = form.cleaned_data["timezone"]
+        if "language" in form.cleaned_data:
+            fields["language"] = form.cleaned_data["language"]
         fields["spouse_name"] = form.cleaned_data["spouse_name"]
         fields["street_address"] = form.cleaned_data["street_address"]
         fields["city"] = form.cleaned_data["city"]
@@ -874,6 +1026,14 @@ class SettingsView(LoginRequiredMixin, FormView):
         return default_redirect(self.request, fallback_url, **kwargs)
 
 
+class StaffUpdateView(ManagerCheckMixin, SignupView):
+
+    model = User
+
+    template_name = "time_log/settings.html"
+    form_class = StaffSettingsForm
+
+
 class DeleteView(LogoutView):
 
     template_name = "account/delete.html"
@@ -901,3 +1061,51 @@ class DeleteView(LogoutView):
         ctx.update(kwargs)
         ctx["ACCOUNT_DELETION_EXPUNGE_HOURS"] = settings.ACCOUNT_DELETION_EXPUNGE_HOURS
         return ctx
+
+
+
+
+
+# class StaffLogDetail(StaffLogAuthMixin, DetailView):
+#     template_name = "time_log/staff_log_detail.html"
+
+
+class StaffList(ManagerCheckMixin, ListView):
+    template_name = "time_log/staff_list.html"
+    context_object_name = 'staff_list'
+    queryset = User.objects.filter(is_staff=True).exclude(pk=1)
+    
+    def get_context_data(self, **kwargs):
+        context = super(StaffList, self).get_context_data(**kwargs)
+        context['title'] = "Staff"
+        return context
+
+
+class ClientList(ManagerCheckMixin, ListView):
+    template_name = "time_log/client_list.html"
+    context_object_name = 'client_list'
+    queryset = User.objects.filter(is_staff=False)
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientList, self).get_context_data(**kwargs)
+        context['title'] = "Clients"
+        return context
+
+
+class ClientDetail(ManagerCheckMixin, DetailView):
+    model = User
+    template_name = "account/detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientDetail, self).get_context_data(**kwargs)
+        context['title'] = "Client's Details"
+        return context
+
+class StaffDetail(ClientDetail):
+    model = User
+    template_name = "account/detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ClientDetail, self).get_context_data(**kwargs)
+        context['title'] = "Employee Details"
+        return context

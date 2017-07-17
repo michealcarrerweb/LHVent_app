@@ -115,6 +115,7 @@ class Service(CommonInfo):
             self.all_cost += part_tot_cost
         hourly_cost = self.all_time * hourly_base
         self.all_cost += hourly_cost
+        # print(self.all_time, self.all_cost, self.parts_list)
         return self.all_time, self.all_cost, self.parts_list
 
     def get_job_tools(self):

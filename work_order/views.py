@@ -42,14 +42,10 @@ class OrderDetail(OrderAuthMixin, DetailView):
 
 	def get_context_data(self, **kwargs):
 		context = super(OrderDetail, self).get_context_data(**kwargs)
-		all_time = 0
-		all_cost = 0
-		for service in self.object.services.all():
-			parts_list = service.get_parts_list()
-			all_time += service.all_time
-			all_cost += service.all_cost
+		all_time, all_cost, parts_list = self.object.get_services_parts_time_cost_list()
 		context['all_time'] = all_time
 		context['all_cost'] = all_cost
+		context['parts_list'] = parts_list
 		context['title'] = self.__str__()
 
 		return context
@@ -59,16 +55,10 @@ class OrderMessageMixin(OrderAuthMixin, SuccessMessageMixin):
 	template_name = "form.html"
 	success_url = reverse_lazy('work_order:order_list')
 
-
-class OrderCreate(OrderMessageMixin, CreateView):
-	fields = ["client", "description", "note", "services"]
-	success_message = "%(order)s was successfully created"
-	title = "Create Order"
-
 	def get_success_message(self, cleaned_data):
 		name = self.object.client.first_name
-		if self.object.client.spouse_name:
-			name += " and " + self.object.client.spouse_name
+		if self.object.client.account.spouse_name:
+			name += " and " + self.object.client.account.spouse_name
 		identifier = "{} {} - {} ({})".format(
 			name, self.object.client.last_name, self.object.description,
 			str(self.object.order_created)
@@ -79,23 +69,16 @@ class OrderCreate(OrderMessageMixin, CreateView):
 		)
 
 
+class OrderCreate(OrderMessageMixin, CreateView):
+	fields = ["client", "description", "note", "services"]
+	success_message = "%(order)s was successfully created"
+	title = "Create Order"
+
+
 class OrderUpdate(OrderMessageMixin, UpdateView):
 	fields = ["client", "description", "note", "services", "postponed"]
 	success_message = "%(order)s was successfully updated"
 	title = "Update Order"
-
-	def get_success_message(self, cleaned_data):
-		name = self.object.client.first_name
-		if self.object.client.spouse_name:
-			name += " and " + self.object.client.spouse_name
-		identifier = "{} {} - {} ({})".format(
-			name,self.object.client.last_name, self.object.description,
-			str(self.object.order_created)
-		)
-		return self.success_message % dict(
-			cleaned_data,
-			order=identifier,
-		)
 
 
 class OrderPulled(OrderMessageMixin, UpdateView):
@@ -107,18 +90,6 @@ class OrderPulled(OrderMessageMixin, UpdateView):
 			'pulled':datetime.now()
 		}
 
-	def get_success_message(self, cleaned_data):
-		name = self.object.client.first_name
-		if self.object.client.spouse_name:
-			name += " and " + self.object.client.spouse_name
-		identifier = "{} {} - {} ({})".format(
-			name,self.object.client.last_name, self.object.description,
-			str(self.object.order_created)
-		)
-		return self.success_message % dict(
-			cleaned_data,
-			order=identifier,
-		)
 
 	def get_context_data(self, **kwargs):
 		context = super(OrderPulled, self).get_context_data(**kwargs)
@@ -152,18 +123,6 @@ class OrderCompleted(OrderMessageMixin, UpdateView):
 			'work_completed':datetime.now()
 		}
 
-	def get_success_message(self, cleaned_data):
-		name = self.object.client.first_name
-		if self.object.client.spouse_name:
-			name += " and " + self.object.client.spouse_name
-		identifier = "{} {} - {} ({})".format(
-			name,self.object.client.last_name, self.object.description,
-			str(self.object.order_created)
-		)
-		return self.success_message % dict(
-			cleaned_data,
-			order=identifier,
-		)
 
 	def get_context_data(self, **kwargs):
 		context = super(OrderCompleted, self).get_context_data(**kwargs)

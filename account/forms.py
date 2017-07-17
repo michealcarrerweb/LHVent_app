@@ -195,6 +195,52 @@ class PasswordField(forms.CharField):
         return value
 
 
+# class ClientSignupForm(BasicAddress):
+#     initial_password = forms.CharField(
+#         max_length=64,
+#         required=False,
+#         widget=forms.HiddenInput()
+#     )
+
+
+class StaffSignupForm(BasicAddress):
+    is_financial = forms.BooleanField(
+        label=_("Finance"),
+        help_text=_(
+            'Designates this staff member has financial permissions.'
+        ),
+        required=False
+    )
+    is_manager = forms.BooleanField(
+        label=_("Manager"),
+        help_text=_(
+            'Designates this staff member has schedule and client permissions.'
+        ),
+        required=False
+    )
+    is_warehouse = forms.BooleanField(
+        label=_("Warehousing"),
+        help_text=_(
+            'Designates whether this staff member has warehouse permissions.'
+        ),
+        required=False
+    )    
+    is_service = forms.BooleanField(
+        label=_("Service"),
+        help_text=_(
+            'Designates this staff member has services permissions.'
+        ),
+        required=False
+    )
+    is_maintenance = forms.BooleanField(
+        label=_("Maintenance"),
+        help_text=_(
+            'Designates this staff member has maintenance permissions.'
+        ),
+        required=False
+    )
+
+
 class SignupForm(BasicAddress):
 
     password = PasswordField(
@@ -204,11 +250,6 @@ class SignupForm(BasicAddress):
     password_confirm = PasswordField(
         label=_("Password (again)"),
         strip=settings.ACCOUNT_PASSWORD_STRIP,
-    )
-    initial_password = forms.CharField(
-        max_length=64,
-        required=False,
-        widget=forms.HiddenInput()
     )
     code = forms.CharField(
         max_length=64,
@@ -286,7 +327,7 @@ class ChangePasswordForm(forms.Form):
 
     password_current = forms.CharField(
         label=_("Current Password"),
-        widget=forms.PasswordInput(render_value=False)
+        widget=forms.PasswordInput(render_value=True)
     )
     password_new = forms.CharField(
         label=_("New Password"),
@@ -431,3 +472,50 @@ class SettingsForm(BasicAddress):
         if not check_zip.search(value):
             raise forms.ValidationError(_('Enter a valid zip code. This value must contain exactly 5 numbers.'))
         return value
+
+
+class StaffSettingsForm(SettingsForm):
+
+    is_active = forms.BooleanField(
+        label=_("Active"),
+        help_text=_(
+            'Designates whether this user should be treated as active. '
+            'Unselect this instead of deleting accounts.'
+        ),
+        required=False
+    )
+    is_financial = forms.BooleanField(
+        label=_("Finance"),
+        help_text=_(
+            'Designates this staff member has financial permissions.'
+        ),
+        required=False
+    )
+    is_manager = forms.BooleanField(
+        label=_("Manager"),
+        help_text=_(
+            'Designates this staff member has schedule and client permissions.'
+        ),
+        required=False
+    )
+    is_warehouse = forms.BooleanField(
+        label=_("Warehousing"),
+        help_text=_(
+            'Designates whether this staff member has warehouse permissions.'
+        ),
+        required=False
+    )    
+    is_service = forms.BooleanField(
+        label=_("Service"),
+        help_text=_(
+            'Designates this staff member has services permissions.'
+        ),
+        required=False
+    )
+    is_maintenance = forms.BooleanField(
+        label=_("Maintenance"),
+        help_text=_(
+            'Designates this staff member has maintenance permissions.'
+        ),
+        required=False
+    )

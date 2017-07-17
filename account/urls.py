@@ -2,11 +2,11 @@ from __future__ import unicode_literals
 
 from django.conf.urls import url, include
 
-from account.views import SignupView, LoginView, LogoutView, DeleteView
+from account.views import SignupView, LoginView, LogoutView, DeleteView, ClientSignupView, StaffSignupView
 from account.views import ConfirmEmailView
 from account.views import ChangePasswordView, PasswordResetView, PasswordResetTokenView
-from account.views import SettingsView
-from account.views import AccountViewAPI#, AccountCreateViewAPI, AccountUpdateViewAPI, AccountDeleteViewAPI
+from account.views import SettingsView, StaffUpdateView, StaffList, ClientList, ClientDetail, StaffDetail
+from account.views import AccountViewAPI#, AccountUpdateViewAPI, #AccountDeleteViewAPI
 
 from rest_framework import routers
 
@@ -19,6 +19,8 @@ router.register(r'api/account', AccountViewAPI)
 
 urlpatterns = [
     url(r"^signup/$", SignupView.as_view(), name="account_signup"),
+    url(r"^client_signup/$", ClientSignupView.as_view(), name="client_signup"),
+    url(r"^staff_signup/$", StaffSignupView.as_view(), name="staff_signup"),
     url(r"^login/$", LoginView.as_view(), name="account_login"),
     url(r"^logout/$", LogoutView.as_view(), name="account_logout"),
     url(r"^confirm_email/(?P<key>\w+)/$", ConfirmEmailView.as_view(), name="account_confirm_email"),
@@ -31,8 +33,14 @@ urlpatterns = [
     # url(r'^user/create/$', AccountCreateViewAPI.as_view(), name="user_create"),
     # # url(r'^users/list/$', views.UsersListView.as_view(), name="users_list"),
     # # url(r'^users/(?P<pk>\d+)/detail/$', views.UserDetailView.as_view(), name="user_detail"),
-    # url(r'^users/(?P<pk>\d+)/update/$', AccountUpdateViewAPI.as_view(), name="user_update"),
+    url(r'^staff/(?P<pk>\d+)/update/$', StaffUpdateView.as_view(), name="staff_update"),
     # url(r'^users/(?P<pk>\d+)/delete/$', AccountDeleteViewAPI, name="user_delete"), 
+    url(r'^staff/$', StaffList.as_view(), name="staff_list"),
+    url(r'^clients/$', ClientList.as_view(), name="client_list"),
+    url(r'^client/(?P<pk>\d+)/detail/$', ClientDetail.as_view(), name="client_detail"),
+    url(r'^client/(?P<pk>\d+)/update/$', ClientDetail.as_view(), name="client_update"),
+    url(r'^staff/(?P<pk>\d+)/detail/$', StaffDetail.as_view(), name="staff_detail"),
+    url(r'^staff/(?P<pk>\d+)/update/$', StaffDetail.as_view(), name="staff_update"),
 
     
 ]

@@ -6,7 +6,7 @@ import time
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
-# from employee.models import Employee
+from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404, render, redirect
@@ -35,19 +35,19 @@ class StaffLogDetail(StaffLogAuthMixin, DetailView):
 
 
 class StaffList(StaffLogAuthMixin, ListView):
-    # template_name = "time_log/staff_list.html"
-    # context_object_name = 'staff_list'
-    # queryset = User.objects.filter(is_staff=True).exclude(pk=1)
-    # title = "Staff"
-    pass
+    template_name = "time_log/staff_list.html"
+    context_object_name = 'staff_list'
+    queryset = User.objects.filter(is_staff=True).exclude(pk=1)
+    title = "Staff"
+    # pass
 
 
 class ClientList(StaffLogAuthMixin, ListView):
-    # template_name = "time_log/client_list.html"
-    # context_object_name = 'client_list'
-    # queryset = User.objects.filter(is_client=True)
-    # title = "Clients"
-    pass
+    template_name = "time_log/client_list.html"
+    context_object_name = 'client_list'
+    queryset = User.objects.filter(is_staff=False)
+    title = "Clients"
+    # pass
 
 
 class StaffLogMessageMixin(StaffLogAuthMixin, SuccessMessageMixin):

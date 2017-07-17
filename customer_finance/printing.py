@@ -12,7 +12,7 @@ from reportlab.lib.units import mm
 
 from django.shortcuts import get_object_or_404
 
-from customer_finance.models import Invoice
+from customer_finance.models import Invoice, InvoiceAlteration
 
 
 
@@ -91,23 +91,19 @@ class MyPrint:
         # Draw things on the PDF. Here's where the PDF generation happens.
         # See the ReportLab documentation for the full list of functionality.
         invoice = get_object_or_404(Invoice, slug=self.slug)
+        
         name = invoice.work_order.client.first_name
-        if invoice.work_order.client.spouse_name:
+        if invoice.work_order.client.account.spouse_name:
             name = "{} and {}".format(
                 invoice.work_order.client.first_name,
-                invoice.work_order.client.spouse_name)
+                invoice.work_order.client.account.spouse_name)
         full_name = "{} {}".format(name, invoice.work_order.client.last_name)
-        address_line1 = invoice.work_order.client.street_address
-        address_line2 = "{}, {} {}".format(
-            invoice.work_order.client.city,
-            invoice.work_order.client.state,
-            invoice.work_order.client.zip_code
-        )
+        address_line1 = invoice.work_order.client.account.get_address()
         num = str(invoice.pk)
         if len(num) < 5:
             while len(num) < 5:
                 num = "0" + num
-        cost = invoice.get_cost()
+        # total_after_tax, before_tax, total_tax = invoice.get_cost()
         balance_due = invoice.get_balance_due()
         elements.append(Paragraph("4561 Center Lane", styles['centered']))
         elements.append(Spacer(1, 4))
@@ -129,19 +125,29 @@ class MyPrint:
         elements.append(Spacer(1, 12))
         elements.append(Paragraph(full_name, styles['Normal']))
         elements.append(Paragraph(address_line1, styles['Normal']))
-        elements.append(Paragraph(address_line2, styles['Normal']))
+        # elements.append(Paragraph(address_line2, styles['Normal']))
         elements.append(Spacer(1, 12))
         elements.append(Paragraph("Service charge: $" + str(
+            invoice.invoice_quote.total_price_quoted - invoice.invoice_quote.tax_on_quote), styles['Normal']))
+        elements.append(Paragraph("Taxes: $" + str(
+            invoice.invoice_quote.tax_on_quote), styles['Normal']))
+        elements.append(Paragraph("Total: $" + str(
             invoice.invoice_quote.total_price_quoted), styles['Normal']))
         elements.append(Spacer(1, 12))
-        if invoice.payments:
-            elements.append(Paragraph("Total payments: $" + str(invoice.payments), styles['Normal']))
-        elements.append(Paragraph("Balance due: $" + str(balance_due), styles['Heading4']))
+        total_alterations = InvoiceAlteration.objects.filter(invoice=invoice)
+        payments = 0
+        if total_alterations:
+            for item in total_alterations:
+                payments += item.transaction_amount
+        elements.append(Paragraph("Total payments: $" + str(payments), styles['Normal']))
         if balance_due > 0:
+            elements.append(Paragraph("Balance due: $" + str(invoice.get_balance_due()), styles['Heading4']))
             due_date = datetime.datetime.now() + datetime.timedelta(days=33)
             due_day = due_date.date()
             # due_date = datetime.datetime.strftime(datetime.timedelta(days=33), "%m/%d/%y") 
             elements.append(Paragraph("Due on or before: " + due_day.strftime('%m/%d/%Y'), styles['Normal']))
+        elif balance_due < 0:
+            elements.append(Paragraph("Refund: $" + str(invoice.get_balance_due()), styles['Heading4']))       
         else:
             elements.append(Paragraph("PAID IN FULL, thank you!", styles['Normal']))
  

@@ -11,25 +11,19 @@
         <div class="panel-heading">
             <legend>{{ title }}
                 <a href="{% url 'staff_signup' %}" 
-                class="btn btn-default" role="button">Add
+                class="btn btn-default" role="button">Add New Staff
                 </a> 
             </legend>
         </div>
-        <div class="panel-body">
-        {% for staff in staff_list %}
+    </div>
+       {% for staff in staff_list %}
             <li class="list-group-item">
-                {% if request.user.is_superuser %}
-                <a href="{% url 'staff_root_update' staff.pk %}">
-                {% else %}
-                <a href="{% url 'staff_update' staff.pk %}">
-                {% endif %} 
+                <a href="{% url 'staff_detail' staff.account.pk %}"> 
                 {{ staff.username }}</a> 
-                {% if staff.is_active == False %} - DEACTIVATED
-                {% elif staff.initial_password %} - Temporary Password: {{ staff.initial_password }}
+                {% if staff.account.is_active == False %} - DEACTIVATED {% endif %}
+                {% if staff.account.initial_password %} - Temporary Password: {{ staff.account.initial_password }}
                 {% else %} - <a href="{% url 'time_log:staff_log_list' staff.pk %}">View work schedule</a>
                 {% endif %}           
             </li>
         {% endfor %}
-        </div>
-    </div>
 {% endblock %}

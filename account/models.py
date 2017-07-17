@@ -39,14 +39,16 @@ class Account(models.Model):
     STATE_CHOICES = state_choices
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="account", verbose_name=_("user"), on_delete=models.CASCADE)
-    #removed 
-    # timezone = TimeZoneField(_("timezone"))
-    # language = models.CharField(
-    #     _("language"),
-    #     max_length=10,
-    #     choices=settings.ACCOUNT_LANGUAGES,
-    #     default=settings.LANGUAGE_CODE
-    # )
+    timezone = TimeZoneField(
+        _("timezone"),
+        default="America/New_York"
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=10,
+        choices=settings.ACCOUNT_LANGUAGES,
+        default=settings.LANGUAGE_CODE
+    )
     initial_password = models.CharField(max_length=40, null=True, blank=True)
     spouse_name = models.CharField(_('spouse name'), max_length=30, null=True, 
         blank=True)
@@ -99,7 +101,7 @@ class Account(models.Model):
         """
         now = datetime.datetime.utcnow().replace(tzinfo=pytz.timezone("UTC"))
         timezone = settings.TIME_ZONE if not self.timezone else self.timezone
-        return now.astimezone(pytz.timezone(timezone))
+        return  now.astimezone(pytz.timezone(timezone))
 
     def localtime(self, value):
         """
@@ -110,6 +112,14 @@ class Account(models.Model):
         if value.tzinfo is None:
             value = pytz.timezone(settings.TIME_ZONE).localize(value)
         return value.astimezone(pytz.timezone(timezone))
+
+    def get_address(self):
+        return "{}\n{}, {} {}".format(
+                                      self.street_address, 
+                                      self.city, 
+                                      self.state, 
+                                      self.zip_code
+        )
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

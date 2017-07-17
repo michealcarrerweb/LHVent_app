@@ -2,9 +2,7 @@
     {
         "pk": 1,
         "model": "finance.main",
-        "fields": {
-            "main": "Master Ledger"
-        }
+        "fields": {}
     },
     {
         "pk": 1,
@@ -22,7 +20,7 @@
         }
     },
     {
-        "model": "stock.company", 
+        "model": "company.company", 
         "pk": 1, 
         "fields": {
             "slug": "any-store", 
@@ -31,11 +29,6 @@
             "company": "Any store", 
             "address": "Any", 
             "company_phone": null, 
-            "contact_first_name": "", 
-            "contact_last_name": "", 
-            "phone": "", 
-            "email": "", 
-            "discontinued": null, 
             "no_longer_use": false
         }
     },

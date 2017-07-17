@@ -39,10 +39,10 @@ class Company(CommonInfo):
         return self.company
 
     def get_success_url(self):
-        return reverse("product:company_list")
+        return reverse("company:company_list")
 
     def get_absolute_url(self):
-        return reverse("product:company_detail", kwargs={'slug': self.slug})
+        return reverse("company:company_detail", kwargs={'slug': self.slug})
 
 
 def pre_save_company(sender, instance, *args, **kwargs):

@@ -12,8 +12,8 @@
             <legend>
                 <a href="{% url "customer_finance:invoice_update" object.slug %}">{{ object }}</a> - Invoice 
             </legend>
-            {% if object.invoice_quote %}
-                <ul>Customer was quoted <strong style="color:black">${{ object.invoice_quote.total_price_quoted }}</strong>
+            {% if total_after_tax %}
+                <ul>Customer was quoted <strong style="color:black">${{ total_after_tax }}</strong>
                  - <a href="{% url "customer_finance:invoice_give_quote" object.slug %}">Re-quote
                 </a></ul>
                 <ul><a href="{% url 'customer_finance:invoice_pdf' slug=object.slug %}">{% trans "Create Printable Invoice" %}</a></ul>
@@ -22,10 +22,10 @@
                 </a></ul>
             {% endif %}
             {% if object.invoice_quote.total_price_quoted %}
-                {% if object.get_balance_due > 0 %}
-                <ul style="color:#ff4000;"><a href="{% url "customer_finance:alteration_create" object.slug %}">Balance Due</a>: ${{ object.get_balance_due|floatformat:2 }}</ul>
-                {% elif object.paid_in_full %}<ul>Paid in full</ul>
-                {% elif object.over_paid %}<ul><a href="{% url "customer_finance:alteration_create" object.slug %}"><strong style="color:#ff4000;">OVER PAID</strong></a>: ${{ object.get_balance_due|floatformat:2 }}   
+                {% if balance_due > 0 %}
+                <ul style="color:#ff4000;"><a href="{% url "customer_finance:alteration_create" object.slug %}">Balance Due</a>: ${{ balance_due|floatformat:2 }}</ul>
+                {% elif balance_due == 0 %}<ul>Paid in full</ul>
+                {% elif balance_due < 0 %}<ul><a href="{% url "customer_finance:alteration_create" object.slug %}"><strong style="color:#ff4000;">OVER PAID</strong></a>: ${{ balance_due|floatformat:2 }}   
                 </ul>
                 {% endif %}                
             {% endif %}
@@ -47,22 +47,18 @@
             <li class="list-group-item">
                 <ul>Order: {{ object.work_order }}</ul>
                 <ul>Pricing: {{ object.pricing }}</ul>
-                <ul>Costs before tax: ${{ object.get_cost|floatformat:2 }}</ul>
-                <ul>Sales Tax: ${{ object.total_tax|floatformat:2 }} at {{ object.tax }}%</ul>
-                <ul><strong>Total including taxes: ${{ object.total_after_tax|floatformat:2 }}</strong></ul>         
+                <ul>Costs before tax: ${{ before_tax }}</ul>
+                <ul>Sales Tax: ${{ total_tax }} at {{ object.tax }}%</ul>
+                <ul><strong>Total including taxes: ${{ total_after_tax }}</strong></ul>         
             </li>
             <li class="list-group-item">
                 <ul>
                     <dl>
                       <dt>Payments/Fees:</dt>
-                      {% if object.payment_schedule %}
                         <dd>{% autoescape on %}
-                                {{ object.payment_schedule | linebreaksbr }}
+                                {{ payment_schedule | linebreaksbr }}
                             {% endautoescape %}
-                        </dd>
-                      {% else %}
-                        <dd>None</dd>
-                      {% endif %}                       
+                        </dd>                       
                     </dl>
                     <dl>
                       <dt>Log:</dt>
