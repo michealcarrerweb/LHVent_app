@@ -45,6 +45,17 @@ class InvoiceMixin(FinanceCheckMixin):
 class InvoiceDetailView(InvoiceMixin, DetailView):
     template_name = "customer_finance/invoice_detail.html"
 
+    def get_context_data(self, **kwargs):
+        context = super(InvoiceDetailView, self).get_context_data(**kwargs)
+        context['total_after_tax'] = self.object.invoice_quote.total_price_quoted
+        context['total_tax'] = self.object.invoice_quote.tax_on_quote
+        context['before_tax'] = self.object.invoice_quote.total_price_quoted - self.object.invoice_quote.tax_on_quote
+        context['title'] = self.__str__()
+        context['balance_due'] = self.object.get_balance_due()
+        context['payment_schedule'] = self.object.get_payment_schedule()
+
+        return context
+
 
 class InvoiceEditMixin(InvoiceMixin, ContextMixin, SuccessMessageMixin):
     template_name = 'form.html'
@@ -56,8 +67,8 @@ class InvoiceEditMixin(InvoiceMixin, ContextMixin, SuccessMessageMixin):
 
     def get_success_message(self, cleaned_data):
     	name = self.object.work_order.client.first_name
-    	if self.object.work_order.client.spouse_name:
-    		name += " and " + self.object.work_order.client.spouse_name
+    	if self.object.work_order.client.account.spouse_name:
+    		name += " and " + self.object.work_order.client.account.spouse_name
     	project_name = "{} {} - {}".format(
     		name,
     		self.object.work_order.client.last_name, 
@@ -122,8 +133,8 @@ class InvoiceGiveQuoteView(ContextMixin, SuccessMessageMixin, UpdateView):
 
     def get_success_message(self, cleaned_data):
         name = self.object.work_order.client.first_name
-        if self.object.work_order.client.spouse_name:
-            name += " and " + self.object.work_order.client.spouse_name
+        if self.object.work_order.client.account.spouse_name:
+            name += " and " + self.object.work_order.client.account.spouse_name
         project_name = "{} {} - {}".format(
             name,
             self.object.work_order.client.last_name, 
@@ -175,9 +186,9 @@ class AlterationEditMixin(AlterationMixin, ContextMixin, SuccessMessageMixin):
 
     def get_success_message(self, cleaned_data):
     	name = self.object.invoice.work_order.client.first_name
-    	if self.object.invoice.work_order.client.spouse_name:
+    	if self.object.invoice.work_order.client.account.spouse_name:
     		name += " and " + \
-    		self.object.invoice.work_order.client.spouse_name
+    		self.object.invoice.work_order.client.account.spouse_name
     	project_name = "{} {} - {}".format(
     		name,
     		self.object.invoice.work_order.client.last_name, 
@@ -238,9 +249,9 @@ class CustomerConflictMixin(FinanceCheckMixin, ContextMixin, SuccessMessageMixin
 
     def get_success_message(self, cleaned_data):
         name = self.object.invoice.work_order.client.first_name
-        if self.object.invoice.work_order.client.spouse_name:
+        if self.object.invoice.work_order.client.account.spouse_name:
             name += " and " + \
-            self.object.invoice.work_order.client.spouse_name
+            self.object.invoice.work_order.client.account.spouse_name
         project_name = "{} {} - {}".format(
             name,
             self.object.invoice.work_order.client.last_name, 

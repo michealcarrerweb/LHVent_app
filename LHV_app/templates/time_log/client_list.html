@@ -10,21 +10,20 @@
     <div class="panel panel-default">
         <div class="panel-heading">
             <legend>{{ title }}
-                <a href="{% url 'staff_signup' %}" 
+                <a href="{% url 'client_signup' %}" 
                 class="btn btn-default" role="button">Add
                 </a> 
             </legend>
         </div>
-        <div class="panel-body">
+    </div>
         {% for client in client_list %}
             <li class="list-group-item">
-                <a href="{% url 'staff_update' client.pk %}">
-                {{ client.first_name }}{% if client.spouse_name %} and {{ client.spouse_name }}{% endif %} {{ client.last_name }}</a> 
-                {% if client.is_active == False %} - DEACTIVATED
-                {% elif client.initial_password %} - Temporary Password: {{ client.initial_password }}
+                <a href="{% url 'client_detail' client.pk %}">
+                {{ client.first_name }}{% if client.spouse_name %} and {{ client.spouse_name }}{% endif %} {{ client.last_name }}</a>
+                {% if client.account.is_active == False %} - DEACTIVATED
+                {% endif %}
+                {% if client.account.initial_password %} - Temporary Password: {{ client.account.initial_password }}
                 {% endif %}           
             </li>
         {% endfor %}
-        </div>
-    </div>
 {% endblock %}

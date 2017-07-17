@@ -1,5 +1,6 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
 {% load account_tags %}
 {% block head_title %}pinax-project-account{% endblock %}
@@ -7,14 +8,15 @@
 {% block body_class %}home{% endblock %}
 
 {% block body_base %}
-<div style="background: url(http://127.0.0.1:8000/site_media/media/images/design/close_pins.jpg) no-repeat center center fixed; 
+
+<div style="background: url({% static 'images/clothesline.jpg' %}) no-repeat center center fixed; 
 -webkit-background-size: cover;
 -moz-background-size: cover;
 -o-background-size: cover;
 background-size: cover;
 ">
     <section class="jumbotron" style="background-color: transparent;">
-        
+
         <div class="container" style="color: rgb(247, 248, 249); font-size: 50px; background-color: transparent; text-shadow: rgb(0, 0, 0) 0px 4px 5px;">
             {% include "_messages.html" %}
             <h1><bold>{% blocktrans %}Welcome to the Lehigh Valley Lint Removal Account Management App{% endblocktrans %}</bold></h1><br>
@@ -45,8 +47,19 @@ background-size: cover;
             <p class="lead text-center">
                 {% blocktrans %}
                 <h2>More info here.</h2>
+                <div ng-app="myApp" ng-controller="myCtrl">
+{{ firstName + " " + lastName }}
+</div>
+<script>
+var app = angular.module("myApp", []);
+app.controller("myCtrl", function($scope) {
+    $scope.firstName = "John";
+    $scope.lastName = "Doe";
+});
+</script>
                 {% endblocktrans %}
             </p>
         </div>
     </section style="background-color: transparent;"></div>
 {% endblock %}
+

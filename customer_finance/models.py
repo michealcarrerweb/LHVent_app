@@ -75,19 +75,14 @@ class Invoice(CommonInfo):
 
     def __init__(self, *args, **kwargs):
         super(Invoice, self).__init__(*args, **kwargs)
-        self.all_time = 0
-        self.all_cost = 0
-        self.before_tax = 0
-        self.total_after_tax = 0
-        self.total_tax = 0
-        self.balance_due = 0
-        self.payments = 0
-        self.payment_schedule = ""
+        # self.balance_due = 0
+        # self.payments = 0
+        # self.payment_schedule = ""
 
     def __str__(self):
         name = self.work_order.client.first_name
-        if self.work_order.client.spouse_name:
-            name += " and " + self.work_order.client.spouse_name
+        if self.work_order.client.account.spouse_name:
+            name += " and " + self.work_order.client.account.spouse_name
         return "{} {} - {} ({})".format(
             name,
             self.work_order.client.last_name, 
@@ -104,83 +99,81 @@ class Invoice(CommonInfo):
         return PriceQuote.objects.get(invoice=self)
 
     def get_cost(self):
-        hourly_rate = get_object_or_404(Hourly, pk=1)
-        hourly_base = hourly_rate.hourly_base
-        for service in self.work_order.services.all():
-            print(service)
-            self.all_time += service.additional_hours
-            hourly_base += service.hourly_additional
-            parts_list = PartsForService.objects.filter(service=service)
-            for part in parts_list:
-                self.all_time += part.product.get_time()
-                self.all_time *= hourly_base
-                mark_up_value = Decimal(
-                    (self.pricing.percentage / 100.00) + 1
-                )
-                self.all_time *= mark_up_value
-                self.all_cost += part.product.get_cost()
-                self.all_cost *= mark_up_value
-        self.before_tax = (self.all_time + self.all_cost)
+        time, cost, parts = self.work_order.get_services_parts_time_cost_list()
+        mark_up_value = Decimal(
+            (self.pricing.percentage / 100.00) + 1
+        )
+        before_tax =  cost * mark_up_value
         taxes = Decimal(self.tax) / 100
-        self.total_tax = self.before_tax * taxes
-        self.total_after_tax = self.before_tax + self.total_tax
-        # return self.before_tax
+        total_tax = before_tax * taxes
+        total_after_tax = before_tax + total_tax
+        return total_after_tax, before_tax, total_tax
 
     def get_balance_due(self):
-        # invoice = Invoice.objects.get(id=self.id)
         total_alterations = InvoiceAlteration.objects.filter(invoice=self)
-        print(total_alterations)
         if total_alterations:
+            balance_due = 0
+            payments = 0
             for item in total_alterations:
-                self.payment_schedule += "{} of ${} was added on {}\n".format( 
+                payments += item.transaction_amount
+            try:
+                quote = self.get_quote()
+                balance_due = quote.total_price_quoted - payments
+                if balance_due < 0:
+                    self.paid_in_full = False
+                    self.over_paid = True
+                elif balance_due == 0:
+                    self.paid_in_full = True
+                    self.over_paid = False
+                else:
+                    self.paid_in_full = False
+                    self.over_paid = False 
+                self.save()
+            except PriceQuote.DoesNotExist:
+                balance_due = -abs(payments)         
+            return balance_due
+        else:
+            try:
+                balance_due = self.invoice_quote.total_price_quoted
+                return balance_due
+            except:
+                return "Not quoted yet"
+
+    def get_payment_schedule(self):       
+        total_alterations = InvoiceAlteration.objects.filter(invoice=self)
+        if total_alterations:
+            payment_schedule = ""
+            for item in total_alterations:
+                payment_schedule += "{} of ${} was added on {}\n".format( 
                     item.transaction_update,
                     item.transaction_amount,
                     item.origin.strftime(
                                 "%Y-%m-%d %H:%M:%S")                       
-                )
-                # if item.transaction_update == 'Fee' or \
-                #         item.transaction_update == 'Error-Off':
-                #     item.transaction_amount = -abs(item.transaction_amount)
-                self.payments += item.transaction_amount
-            try:
-                quote = self.get_quote()
-                self.balance_due = quote.total_price_quoted - self.payments
-                # if self.balance_due < 0:
-                #     self.paid_in_full = False
-                #     self.over_paid = True
-                # elif self.balance_due == 0:
-                #     self.paid_in_full = True
-                #     self.over_paid = False
-                # else:
-                #     self.paid_in_full = False
-                #     self.over_paid = False 
-            except PriceQuote.DoesNotExist:
-                self.balance_due = None          
-            # self.save()
-        #     return self.balance_due
-        # else:
-        #     return self.invoice_quote.total_price_quoted
+                )        
+            return payment_schedule
+        else:
+            return "No payments"         
 
     def save(self, *args, **kwargs):
-        before_tax = self.get_cost()
+        total_after_tax, before_tax, total_tax = self.get_cost()
         if self.give_price_quote:
             try:
                 quote = self.get_quote()
-                if "{0:0.1f}".format(self.total_after_tax) != "{0:0.1f}".format(
-                        quote.total_price_quoted):
+                if "{0:0.1f}".format(total_after_tax) != "{0:0.1f}".format(
+                        quote.total_price_quoted) or quote.total_price_quoted != 0:
                     self.log += "Price quote modified to ${} on {}\n".format(
-                            round(self.total_after_tax, 2),
+                            round(total_after_tax, 2),
                             quote.last_modified.strftime(
                                 "%Y-%m-%d %H:%M:%S")
                             )
-                    quote.total_price_quoted = self.total_after_tax
-                    quote.tax_on_quote = self.total_tax
+                    quote.total_price_quoted = total_after_tax
+                    quote.tax_on_quote = total_tax
                     quote.save()
             except PriceQuote.DoesNotExist:
                 quote = PriceQuote(
                     invoice=self, 
-                    total_price_quoted=self.total_after_tax, 
-                    tax_on_quote=self.total_tax
+                    total_price_quoted=total_after_tax, 
+                    tax_on_quote=total_tax
                 )
                 quote.save()
                 self.log += "Price quote of ${} added on {}\n".format(
@@ -188,7 +181,18 @@ class Invoice(CommonInfo):
                         quote.origin.strftime(
                             "%Y-%m-%d %H:%M:%S")
                 )
-        self.give_price_quote = False
+            self.give_price_quote = False
+        else:
+            try:
+                quote = self.get_quote()
+                pass
+            except PriceQuote.DoesNotExist:
+                quote = PriceQuote(
+                    invoice=self, 
+                    total_price_quoted=0, 
+                    tax_on_quote=0
+                )
+                quote.save()
         if self.work_order.sent_to_finance == False:
             self.work_order.sent_to_finance = True
             self.work_order.save()
@@ -198,8 +202,8 @@ class Invoice(CommonInfo):
 
 def pre_save_project_financial(sender, instance, *args, **kwargs):
     spouse = " and "
-    if instance.work_order.client.spouse_name:
-        spouse = spouse + instance.work_order.client.spouse_name
+    if instance.work_order.client.account.spouse_name:
+        spouse = spouse + instance.work_order.client.account.spouse_name
     else:
             spouse = ""
     num = str(instance.pk)

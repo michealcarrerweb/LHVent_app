@@ -1,0 +1,60 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend><strong>{{ object.username }}</strong>
+                <a href="{% url "client_update" object.pk %}" 
+                    class="btn btn-default" role="button">Update
+                </a> 
+                {% if object.image %}
+                <a href="{% url "product:image_detail" object.slug %}" 
+                    class="btn btn-default" role="button">
+                    <img src="{{ object.image.crop.22x22 }}" class="img-responsive"/></a>
+                {% else %}
+                    No image
+                {% endif %}
+            </legend>
+        </div>
+    </div>
+    
+    <div class="list-group">
+        <li class="list-group-item">
+        {% if not object.is_active %}
+            <ul>
+                <p><strong><h3 style="color:#ff4000;">Deactivated</h3></strong></p>
+            </ul>
+        {% endif %}
+        {% if object.account.initial_password %}
+            <ul>
+                <p><strong><h4>Initial password: </h4><h3 style="color:#ff4000;">{{ object.account.initial_password }}</h3></strong></p>
+            </ul>
+        {% endif %}
+            <ul>Name: {{ object.first_name }}</ul>
+            {% if object.account.spouse_name %}<ul>Spouse: {{ object.account.spouse_name }}</ul>{% endif %}
+            <ul>Last Name: {{ object.last_name }}</ul><br>
+            <ul>Phone: {{ object.account.main_phone }}</ul>
+            {% if object.account.alt_phone %}<ul>Alternate phone: {{ object.account.alt_phone }}</ul>{% endif %}
+            <ul>Email: {{ object.email }}</ul>
+            <ul>Address: {{ object.account.get_address }}</ul><br>
+            <ul>Since: {{ object.date_joined }}</ul>
+
+        </li>
+        {% if object.is_staff %}
+        <li class="list-group-item">
+            {% if object.is_financial %}<ul>Financial</ul>{% endif %}
+            {% if object.is_manager %}<ul>Manager</ul>{% endif %}
+            {% if object.is_warehouse %}<ul>Warehousing</ul>{% endif %}
+            {% if object.is_maintenance %}<ul>Maintenance</ul>{% endif %}
+            {% if object.is_service %}<ul>Service</ul>{% endif %}
+        </li> 
+        {% endif %}        
+    </div>
+    
+{% endblock %}   

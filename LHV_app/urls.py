@@ -4,15 +4,27 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from source_utils.permission_mixins import TemporaryPassWordTemplateView
 
 from django.contrib import admin
 
 
 urlpatterns = [
-    url(r"^$", TemplateView.as_view(template_name="homepage.html"), name="home"),
-    url(r"^403/", TemplateView.as_view(template_name="403.html"), name="403"),
-    url(r"^404/", TemplateView.as_view(template_name="403.html"), name="404"),
-    url(r"^500/", TemplateView.as_view(template_name="403.html"), name="500"),
+    url(r"^$", TemporaryPassWordTemplateView.as_view(
+        template_name="homepage.html"), name="home"
+    ),
+    url(r"^403/", TemplateView.as_view(
+        template_name="403.html"), name="403"
+    ),
+    url(r"^404/", TemplateView.as_view(
+        template_name="403.html"), name="404"
+    ),
+    url(r"^500/", TemplateView.as_view(
+        template_name="403.html"), name="500"
+    ),
+    url(r"^temporary_password_reset/", TemplateView.as_view(
+        template_name="temp_password_change.html"), name="temp_password_change"
+    ),
     url(r"^dgrt/", include(admin.site.urls)),
     url(r"^account/", include("account.urls")),
     url(r"^company/", include("company.urls")),

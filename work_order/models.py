@@ -24,7 +24,7 @@ class Order(models.Model):
     )
     client = models.ForeignKey(
         User, 
-        limit_choices_to={'is_client': True}, 
+        limit_choices_to={'is_staff': False}, 
         on_delete=models.CASCADE
     )
     description = models.CharField(
@@ -85,13 +85,30 @@ class Order(models.Model):
         ordering = ["order_created", "client"]
         unique_together = ("client", "description")
 
+    def __init__(self, *args, **kwargs):
+        super(Order, self).__init__(*args, **kwargs)
+        self.all_time = 0
+        self.all_cost = 0
+        self.parts_list = ""
+        self.services_list = ""
+
     def __str__(self):
         name = self.client.first_name
-        if self.client.spouse_name:
-            name += " and " + self.client.spouse_name
+        if self.client.account.spouse_name:
+            name += " and " + self.client.account.spouse_name
         return "{} {} - {} ({})".format(
             name, self.client.last_name, self.description, self.order_created
         )
+
+    def get_services_parts_time_cost_list(self):
+
+        for service in self.services.all():
+            time, cost, parts = service.get_parts_time_cost_list()
+            self.all_time += time
+            self.all_cost += cost
+            self.parts_list += parts
+        # print(self.all_time, self.all_cost, self.parts_list)
+        return self.all_time, self.all_cost, self.parts_list
 
     def get_absolute_url(self):
         return reverse("work_order:order_detail", kwargs={"slug": self.slug})
@@ -102,8 +119,8 @@ class Order(models.Model):
 
 def pre_save_order(sender, instance, *args, **kwargs):
     spouse = ""
-    if instance.client.spouse_name:
-        spouse = " and " + instance.client.spouse_name
+    if instance.client.account.spouse_name:
+        spouse = " and " + instance.client.account.spouse_name
     slug = (
         instance.client.first_name + spouse + " " + 
         instance.client.last_name + " - " + instance.description + " " + 
