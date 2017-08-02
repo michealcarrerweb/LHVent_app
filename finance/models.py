@@ -15,7 +15,10 @@ from customer_finance.models import (
     CustomerConflict,
     )
 
-from operation_finance.models import Invoice as Operation_Invoice
+from operation_finance.models import (
+    Invoice as Operation_Invoice,
+    VendorConflict,
+    )
 from service.models import PartsForService
 from source_utils.starters import CommonInfo
 
@@ -55,18 +58,6 @@ pre_save.connect(pre_save_pricing, sender=Pricing)
 
 class Main(models.Model):
     main = "Parent Ledger"
-
-    def __init__(self, *args, **kwargs):
-        super(Main, self).__init__(*args, **kwargs)
-        self.client_tot_invoiced = 0
-        self.operation_tot_expenses = 0
-        self.taxes_invoiced = 0
-        self.client_balance = 0
-        self.operation_balance = 0
-        self.total_customer_inv_alterations = 0
-        self.total_operation_inv_alterations = 0
-        self.customer_conflicts = 0
-        self.operational_conflict = 0
         
     def __str__(self):
         return self.main
@@ -82,50 +73,59 @@ class Main(models.Model):
         Creates a current customer balance number, including taxes separated 
         out.
         """
-        customer_invoices = Customer_Invoice.objects.all()
-        for customer in customer_invoices:
-            if customer.invoice_quote.total_price_quoted:
-                self.client_tot_invoiced += customer.invoice_quote.total_price_quoted
-                self.taxes_invoiced += customer.invoice_quote.tax_on_quote
-            customer.get_balance_due()
-            self.total_customer_inv_alterations += customer.payments
-            try:
-                conflicts = CustomerConflict.objects.filter(invoice=customer)
-                self.customer_conflicts += len(conflicts)
-            except CustomerConflict.DoesNotExist:
-                pass
-        self.client_balance = self.total_customer_inv_alterations \
-            - self.client_tot_invoiced
+        total = 0
+        taxes = 0
+        balances = 0
+        un_paid_count = 0
+        conflicts = 0
+        unresolved_conflicts = 0
+        projected_before_tax = 0
+
+        invoice_list = Customer_Invoice.objects.all()
+        count = len(invoice_list)
+        for invoice in invoice_list:
+            if invoice.invoice_quote.total_price_quoted:
+                total += invoice.invoice_quote.total_price_quoted
+                taxes += invoice.invoice_quote.tax_on_quote
+                balances += invoice.get_balance_due()
+            else:
+                projected = invoice.get_cost()
+                projected_before_tax += projected[1]
+            if not invoice.paid_in_full:
+                un_paid_count += 1
+            for conflict in invoice.conflict.all():
+                conflicts += 1
+                if not conflict.conflict_resolution:
+                    unresolved_conflicts += 1
+            profit = total - taxes
+
+        return total, taxes, profit, balances, count, conflicts, unresolved_conflicts, projected_before_tax
 
     def get_operation_balance_sheet(self):
         """
         Creates a current operations balance number.
         """
-        operation_invoices = Operation_Invoice.objects.all()
-        for operation in operation_invoices:
-            self.operation_tot_expenses += operation.invoice_amount
-            operation.get_balance()
-            self.total_operation_inv_alterations += operation.payments
-            if operation.conflict:
-                self.operational_conflict += 1
-        self.operation_balance = self.total_operation_inv_alterations \
-            - self.operation_tot_expenses
+        date_list = Operation_Invoice.objects.all().dates('origin', 'year')
 
-    def get_balance_sheet(self):
-        """
-        Creates a current total balance number, including taxes separated 
-        out.
-        """
-        self.get_customer_balance_sheet()
-        self.get_operation_balance_sheet()
-        return self.total_customer_inv_alterations \
-            - self.total_operation_inv_alterations
-        
+        for years in date_list:
+            Operation_Invoice.objects.filter(origin__year = years.year)
 
-    def get_projected_balance_sheet(self):
-        """
-        Creates a current total balance number, including taxes separated 
-        out.
-        """
-        return self.client_tot_invoiced - self.operation_tot_expenses \
-            - self.taxes_invoiced
+        expenses = 0
+        balances = 0
+        un_paid_count = 0
+        conflicts = 0
+        unresolved_conflicts = 0
+
+        invoice_list = Operation_Invoice.objects.all()
+        count = len(invoice_list)
+        for invoice in invoice_list:
+            expenses += invoice.invoice_amount
+            balances += invoice.get_balance_due()
+            if not invoice.paid_in_full:
+                un_paid_count += 1
+            for conflict in invoice.conflict.all():
+                conflicts += 1
+                if not conflict.conflict_resolution:
+                    unresolved_conflicts += 1
+
+        return expenses, balances, count, conflicts, unresolved_conflicts 

@@ -1,29 +1,17 @@
-
-{% extends "service/service_menu.html" %}
+{% extends "_menu.html" %}
 
 {% load i18n %}
+
 {% load bootstrap %}
 
-{% block body_class %}service services-detail{% endblock %}
+{% block head_title %}{{ object }}{% endblock %}
 
-{% block head_title %}{% trans "Service" %}{% endblock %}
-
-{% block body %}
+{% block full %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <legend>{{ object }} 
-                <a href="{% url "work_order:order_update" object.slug %}" 
-                    class="btn btn-default" role="button">Update
-                </a>
-                {% if request.user.is_superuser %}
-                    {% if not object.work_initiated and not object.work_completed and not object.closed_out %}
-                    <a href="{% url "work_order:order_delete" object.slug %}" 
-                        class="btn btn-warning" role="button">Delete
-                    </a>
-                    {% endif %}
-                {% endif %}
-            </legend>
-            <ul><strong>{{ object.description }}</strong></ul>
+            <legend>
+                <a href="{% url "work_order:order_update" object.slug %}" >{{ object }}</a>
+            </legend>            
             {% if object.postponed %}
             <ul>
                 <h3>This order is  
@@ -31,79 +19,123 @@
                 </h3>
             </ul>
             {% endif %}
-            <li class="list-group-item">
-                <ul>Hours: {{ all_time|floatformat:2 }}</ul>
-                <ul>Cost: ${{ all_cost|floatformat:2 }}</ul>
-            </li>
-            <li class="list-group-item">
-                <ul>Created: {{ object.order_created }}</ul>
-                <ul>{% if object.pulled %}
-                        Parts pulled on {{ object.pulled }}
-                    {% else %}
-                        Parts not pulled yet
-                    {% endif %} 
-                </ul>
-                <ul>{% if object.scheduled %}
-                        Scheduled for <a href="#">
-                        #</a>
-                    {% else %}
-                        <a href="#">
-                        Schedule now</a>
-                    {% endif %}
-                </ul>
-                <ul>{% if object.work_initiated %}
-                        Work initiated on {{ object.work_initiated }}
-                    {% endif %} 
-                </ul>
-                <ul>{% if object.work_completed %}
-                        Work completed on {{ object.work_completed }}
-                    {% endif %} 
-                </ul>
-                <ul>{% if object.closed_out %}
-                        Order closed out on {{ object.closed_out }}
-                    {% else %}
-                        Work order not closed out
-                    {% endif %}
-                </ul>
-            </li>
-            <li class="list-group-item">
-                <ul>
-                <dt>Services:</dt>
-                {% if object.get_service_list %}
-                    <dd>{% autoescape on %}
-                            {{ object.get_service_list | linebreaksbr }}
-                        {% endautoescape %}
-                    </dd>
-                  {% else %}
-                    <dd>None</dd>
-                  {% endif %}
-                </ul>
-                {% if object.note %}
-                <ul>                
-                <dt>Notes:</dt>                
-                    <dd>{% autoescape on %}
-                            {{ object.note | linebreaksbr }}
-                        {% endautoescape %}
-                    </dd>                 
-                </ul>
-                {% endif %}
-            </li>
-            <li class="list-group-item">
-                <ul>
-                    <dl>
-                      <dt>Job history:</dt>
-                      {% if object.job_history %}
-                        <dd>{% autoescape on %}
-                                {{ object.job_history | linebreaksbr }}
-                            {% endautoescape %}
-                        </dd>
-                      {% else %}
-                        <dd>None</dd>
-                      {% endif %}                       
-                    </dl>
-                </ul>
-            </li>  
         </div>
-    </div>
-
+    </div>   
+    <li class="list-group-item">
+        <ul>
+          <dl>
+            <dt>Work order: {{ object.description }}</dt>
+                <dd>Hours: {{ all_time|floatformat:2 }}</dd>
+                <dd>Cost: ${{ all_cost|floatformat:2 }}</dd>
+                <dd>Created: {{ object.origin }}</dd>
+            <dt>Time Line:</dt>
+              {% if object.sent_to_finance %}
+              <dd>                    
+              Sent to finance on {{ object.work_order_invoice.origin }}
+              {% else %}
+              This work order has not been invoiced yet!                  
+              </dd>
+              {% endif %}
+              {% if object.postponed %}
+              <dd>                    
+              Posponed on {{ object.postponed }}                   
+              </dd>
+              {% endif %}
+              {% if object.scheduled %}
+              <dd>                    
+              Scheduled on {{ object.scheduled }}                   
+              </dd>
+              {% endif %}
+              {% if object.pulled %}
+              <dd>                    
+              Pulled on {{ object.pulled }}                   
+              </dd>
+              {% endif %}
+              {% if object.work_initiated %}
+              <dd>                    
+              Work initiated on {{ object.work_initiated }}                   
+              </dd>
+              {% endif %}
+              {% if object.work_completed %}
+              <dd>                    
+              Work completed on {{ object.work_completed }}                   
+              </dd>
+              {% endif %}
+              {% if object.closed_out %}
+              <dd>                    
+              Sent to finance on {{ object.closed_out }}                   
+              </dd>
+              {% endif %}
+              {% if object.postponed %}
+              <dd>                    
+              Posponed on {{ object.postponed }}                   
+              </dd>
+              {% endif %}                      
+            {% if not object.postponed and object.sent_to_finance %}
+            <dt>Tasks to yet be completed:</dt>
+              {% if not object.scheduled %}
+              <dd>
+              <a href="{% url 'work_order:order_action' slug=object.slug action='scheduled' %}" >Schedule Work</a>
+              </dd>
+              {% endif %}
+              {% if not object.pulled %}
+              <dd>
+              <a href="{% url 'work_order:order_action' slug=object.slug action='pulled' %}" >Pull Required Items</a>
+              </dd>
+              {% endif %}
+              {% if not object.work_initiated %}
+              <dd>
+              <a href="{% url 'work_order:order_action' slug=object.slug action='initiated' %}" >Work Initiate</a>
+              </dd>
+              {% endif %}
+              {% if not object.work_completed %}
+              <dd>
+              <a href="{% url 'work_order:order_action' slug=object.slug action='completed' %}" >Work Complete</a>
+              </dd>
+              {% endif %}
+              {% if not object.closed_out %}
+              <dd>
+              <a href="{% url 'work_order:order_action' slug=object.slug action='closed' %}" >Close Out</a>
+              {% else %}
+              No Further Action
+              </dd>
+              {% endif %}
+            {% endif %}
+          </dl> 
+        </ul>
+    </li>
+    <li class="list-group-item">
+        <ul>
+            <dt>Services:</dt>
+            {% if object.get_service_list %}
+                <dd>{% autoescape on %}
+                        {{ object.get_service_list | linebreaksbr }}
+                    {% endautoescape %}
+                </dd>
+            {% else %}
+                <dd>None</dd>
+            {% endif %}
+        </ul>
+    </li>
+    {% if object.note %}
+    <li class="list-group-item">
+        <ul>                
+            <dt>Note:</dt>                
+                <dd>{{ object.note }}</dd>                 
+        </ul>
+    </li>
+    {% endif %}
+    <li class="list-group-item">
+        <ul>
+          <dt>Job history:</dt>
+          {% if object.job_history %}
+            <dd>{% autoescape on %}
+                    {{ object.job_history | linebreaksbr }}
+                {% endautoescape %}
+            </dd>
+          {% else %}
+            <dd>None</dd>
+          {% endif %}                       
+        </ul>
+    </li>  
 {% endblock %}

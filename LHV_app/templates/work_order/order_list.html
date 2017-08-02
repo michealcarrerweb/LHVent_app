@@ -1,33 +1,110 @@
-{% extends "_menu.html" %}
+{% extends "list.html" %}
 
-{% load i18n %}
+{% block links %}
+  <a href="{% url 'work_order:order_add' %}" >
+    New Work Order
+  </a><br>
+  <a href="{% url "work_order:order_list" "not_finance" %}">
+    Work Orders Not At Financial
+  </a><br>
+  <a href="{% url "work_order:order_list" "postponed" %}">
+    Postponed Work Orders
+  </a><br>
+  <a href="{% url "work_order:order_list" "active" %}">
+    All Active Work Orders
+  </a><br>
+  <a href="{% url "work_order:order_list" "all" %}">
+    All Work Orders
+  </a>
+{% endblock %}
 
-{% load bootstrap %}
-
-{% block head_title %}{{ title }}{% endblock %}
-
-{% block body %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <legend>{{ title }}
-                <a href="{% url 'work_order:order_add' %}" 
-                class="btn btn-default" role="button">Add
-                </a> 
-            </legend>
-        </div>
-        <div class="panel-body">
-        {% for obj in object_list %}
-            <li class="list-group-item">
-                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
-                    {% if obj.postponed %}
-                         - Order is postponed
-                    {% elif not obj.pulled %}
-                         - <a href="{% url 'work_order:order_pulled' obj.slug %}" >Pull</a>
-                    {% elif not obj.work_completed %}
-                         - <a href="{% url 'work_order:work_completed' obj.slug %}" >Completed</a>
-                    {% endif %}                
-            </li>
-        {% endfor %}
-        </div>
-    </div>
+{% block body_options %}
+  {% if object_list %}
+  {% for obj in object_list %}
+    <li class="list-group-item">
+      <ul>
+        <dt><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></dt>
+        <dt>Time Line:</dt>
+          {% if obj.sent_to_finance %}
+          <dd>                    
+          Sent to finance on {{ obj.work_order_invoice.origin }}
+          {% else %}
+          This work order has not been invoiced yet!                  
+          </dd>
+          {% endif %}
+          {% if obj.postponed %}
+          <dd>                    
+          Posponed on {{ obj.postponed }}                   
+          </dd>
+          {% endif %}
+          {% if obj.scheduled %}
+          <dd>                    
+          Scheduled on {{ obj.scheduled }}                   
+          </dd>
+          {% endif %}
+          {% if obj.pulled %}
+          <dd>                    
+          Pulled on {{ obj.pulled }}                   
+          </dd>
+          {% endif %}
+          {% if obj.work_initiated %}
+          <dd>                    
+          Work initiated on {{ obj.work_initiated }}                   
+          </dd>
+          {% endif %}
+          {% if obj.work_completed %}
+          <dd>                    
+          Work completed on {{ obj.work_completed }}                   
+          </dd>
+          {% endif %}
+          {% if obj.closed_out %}
+          <dd>                    
+          Sent to finance on {{ obj.closed_out }}                   
+          </dd>
+          {% endif %}
+          {% if obj.postponed %}
+          <dd>                    
+          Posponed on {{ obj.postponed }}                   
+          </dd>
+          {% endif %}                      
+        {% if not obj.postponed and obj.sent_to_finance %}
+        <dt>Tasks to yet be completed:</dt>
+          {% if not obj.scheduled %}
+          <dd>
+          <a href="{% url 'work_order:order_action' slug=obj.slug action='scheduled' %}" >Schedule Work</a>
+          </dd>
+          {% endif %}
+          {% if not obj.pulled %}
+          <dd>
+          <a href="{% url 'work_order:order_action' slug=obj.slug action='pulled' %}" >Pull Required Items</a>
+          </dd>
+          {% endif %}
+          {% if not obj.work_initiated %}
+          <dd>
+          <a href="{% url 'work_order:order_action' slug=obj.slug action='initiated' %}" >Work Initiate</a>
+          </dd>
+          {% endif %}
+          {% if not obj.work_completed %}
+          <dd>
+          <a href="{% url 'work_order:order_action' slug=obj.slug action='completed' %}" >Work Complete</a>
+          </dd>
+          {% endif %}
+          {% if not obj.closed_out %}
+          <dd>
+          <a href="{% url 'work_order:order_action' slug=obj.slug action='closed' %}" >Close Out</a>
+          {% else %}
+          No Further Action
+          </dd>
+          {% endif %}
+        {% endif %}
+      </ul>
+    </li>      
+  {% endfor %}
+  {% else %}
+  <li class="list-group-item">
+    <ul>
+      <dt>Empty List</dt>
+    </ul>
+  </li>
+  {% endif %}
 {% endblock %}

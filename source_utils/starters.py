@@ -3,7 +3,7 @@ from django.db import models
 
 
 class CommonInfo(models.Model):
-    slug = models.SlugField(max_length=100, blank=True)
+    slug = models.SlugField(max_length=150, blank=True)
     origin = models.DateTimeField(auto_now_add=True, null=True)
     last_modified = models.DateTimeField(auto_now=True, null=True)
 

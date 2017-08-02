@@ -1,0 +1,25 @@
+{% extends "list.html" %}
+
+{% block links %}
+  <a href="{% url 'company:company_create' %}">New Company</a>
+{% endblock %}
+
+{% block body_options %}
+  {% for obj in object_list %}
+  <li class="list-group-item">
+    <ul>
+      {% if obj.slug != 'any-store' %}
+      <dt><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></dt>
+      {% else %}
+      <dt>{{ obj }}</dt>
+      {% endif %}
+      {% if obj.no_longer_use %}
+      <dt>Do not use!</dt>
+      {% endif %}
+          <dd><a href="{% url "product:supplier_item_list" obj.slug %}">Products</a> ~~ <a href="{% url 'product:supplier_item_create' obj.slug %}">Add product</a></dd>
+          <dd><a href="{% url "product:supplier_item_list" obj.slug %}">Tools</a> ~~ <a href="{% url 'equipment:base_list' %}">Add tool</a></dd>
+    </ul>
+  </li>
+  {% endfor %}
+{% endblock %}
+

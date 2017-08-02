@@ -14,6 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.contrib import auth
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 from account.conf import settings
 from account.hooks import hookset
@@ -21,30 +22,18 @@ from account.models import EmailAddress
 from account.utils import get_user_lookup_kwargs
 from account.states import state_choices
 
+from source_utils.form_mixins import (
+    alnum_re,
+    check_names,
+    check_phone,
+    check_mod_phone,
+    check_mod_space_phone,
+    check_zip,
+    check_phone_options
+)
 
-# alnum_re = re.compile(r"^\w+$")
-alnum_re = re.compile(r'^[\w.@+-]+$')#re.compile(r"^\w+$")
-    #changed to meet username requirements
-check_names = re.compile(r'^[\w]{2,}$')
-check_phone = re.compile(r'^[0-9]{10}$')
-check_mod_phone = re.compile(r'^\+1([0-9]{10})$')
-check_mod_space_phone = re.compile(r'^([0-9]{3})( *)([0-9]{3})( *)([0-9]{4})$')
-check_zip = re.compile(r'^[0-9]{5}$')
 
-
-class Clean_Checks(object):
-
-    def check_phone_options(self, value):
-        if check_phone.search(value):
-            value = "+1" + value
-            return value
-        elif check_mod_space_phone.search(value):
-            value = "+1" + value
-            return value
-        elif check_mod_phone.search(value):               
-            return value
-        else:
-            raise forms.ValidationError(_('Enter a valid phone number - ex. 2223334444.')) 
+class Clean_Checks:
 
     def clean_username(self):
         if not alnum_re.search(self.cleaned_data["username"]):
@@ -97,13 +86,13 @@ class Clean_Checks(object):
 
     def clean_main_phone(self):
         value = self.cleaned_data["main_phone"]
-        return self.check_phone_options(value)
+        return check_phone_options(value)
 
     def clean_alt_phone(self):
         value = self.cleaned_data["alt_phone"]
         if value == "":
             return None
-        return self.check_phone_options(value)
+        return check_phone_options(value)
 
     def clean_zip_code(self):
         if not check_zip.search(self.cleaned_data["zip_code"]):
@@ -454,7 +443,7 @@ class SettingsForm(BasicAddress):
         value = self.cleaned_data["main_phone"]
         if self.initial.get("main_phone") == value:
             return value
-        return self.check_phone_options(value)
+        return check_phone_options(value)
 
     def clean_alt_phone(self):
         value = self.cleaned_data["alt_phone"]
@@ -463,7 +452,7 @@ class SettingsForm(BasicAddress):
             return old_value
         if value == "":
             return None
-        return self.check_phone_options(value)
+        return check_phone_options(value)
                 
     def clean_zip_code(self):
         value = self.cleaned_data["zip_code"]
@@ -519,3 +508,13 @@ class StaffSettingsForm(SettingsForm):
         ),
         required=False
     )
+
+
+class StaffUpdateForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = (
+            "username", 
+            
+        )

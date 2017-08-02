@@ -7,13 +7,15 @@
 {% block head_title %}{{ title }}{% endblock %}
 
 {% block body %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <legend>{{ title }}</legend>
-            {% block links %}
-            {% endblock %}
-        </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <legend>{{ title }}</legend>
+      <ul>
+        {% block links %}
+        {% endblock %}
+      </ul>
     </div>
-    {% block body_options %}
-    {% endblock %}  
+  </div>    
+  {% block body_options %}
+  {% endblock %} 
 {% endblock %}

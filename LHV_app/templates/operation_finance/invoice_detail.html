@@ -9,53 +9,66 @@
 {% block full %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <legend>{{ object }} - Invoice{{ object.get_balance }}{% if not object.paid_in_full %} - <a href="{% url "operation_finance:alteration_create" object.slug %}">Settle</a>{% endif %}
-                <a href="{% url "operation_finance:invoice_update" object.slug %}" 
-                    class="btn btn-default" role="button">Edit
-                </a>
+            <legend><a href="{% url "operation_finance:invoice_update" object.slug %}">{{ object }}</a> - Invoice
             </legend>
-            {% if object.paid_in_full %}
-                <ul style="color:#ff4000;">Paid</ul> 
-            {% elif object.over_paid %} 
-                <ul>Over paid by: <strong style="color:#ff4000;">{{ object.balance }}</strong></ul> 
-            {% else %}
-                <ul>Payment due by: <strong style="color:#ff4000;">{{ object.due_by }}</strong></ul> 
-            {% endif %}
-            {% if object.conflict %}
-                <ul><strong style="color:#ff4000;">Conflict pending!</strong>
-                    {% if object.conflict_description %}
-                    Reason for conflict: {{ object.conflict_description }}
-                    {% endif %}               
+            {% if balance_due > 0 %}
+                <ul style="color:#ff4000;">
+                    <a href="{% url "operation_finance:alteration_create" object.slug %}">Balance Due{% if object.due_by %} By {{ object.due_by }}{% endif %}</a>: ${{ balance_due|floatformat:2 }} 
                 </ul>
+            {% elif balance_due == 0 %}
+                <ul><strong style="color:black">Paid in full</strong></ul>
+            {% elif balance_due < 0 %}
+                <ul>
+                    <a href="{% url "operation_finance:alteration_create" object.slug %}"><strong style="color:#ff4000;">OVER PAID</strong></a>: ${{ balance_due|floatformat:2 }}   
+            </ul>
             {% endif %}
+            <ul>
+                <a href="{% url "operation_finance:conflict_create" object.slug %}">Add Conflict</a>
+            </ul>                
+            {% include "_delete_option.html" %}
         </div>
+        {% if object.conflict.all %}
+        <li class="list-group-item">
+            {% for conflicts in object.conflict.all %}
+                <ul>
+                    <strong style="color:#ff4000;">Conflict:</strong>
+                        <a href="{% url 'operation_finance:conflict_update' pk=conflicts.pk %}">{{ conflicts.conflict_description }}</a>
+                             - {{ conflicts.origin }}  
+                    {% if conflicts.conflict_resolution %}
+                    <br>
+                    <strong style="color:black">Resolved</strong>:
+                        <a href="{% url 'operation_finance:conflict_resolve' pk=conflicts.pk %}">{{ conflicts.conflict_resolution }}</a>
+                             - {{ conflicts.last_modified }}
+                    {% else %}
+                         - <a href="{% url 'operation_finance:conflict_resolve' pk=conflicts.pk %}">{% trans "Resolve" %}</a>
+                    {% endif %}
+                </ul>
+            {% endfor %}
+        </li>
+        {% endif %}
             {% if object.note %}
             <li class="list-group-item">
                 <ul>Notes: {{ object.note }}</ul>
             </li>
             {% endif %}
             <li class="list-group-item">
-                <ul>Invoice: {{ object.invoice }}</ul>
-                <ul>Ledger: {{ object.ledger }}</ul>
+                <ul>Vendor: {{ object.vendor }}</ul>
                 <ul>Invoice ID: {{ object.plu }}</ul>
-                <ul>Invoice total: ${{ object.invoice_amount }}</ul>
-                <ul>Balance Due: ${{ object.balance }}</ul>     
+                <ul>Logged: {{ object.origin }}</ul>
+                <ul>Balance Due: ${{ balance_due }}</ul> 
+                <ul>Invoice total: $<strong style="color:black">{{ object.invoice_amount }}</strong></ul>
+                    
             </li>
             <li class="list-group-item">
                 <ul>
                     <dl>
                       <dt>Payments/Fees:</dt>
-                      {% if object.payment_schedule %}
                         <dd>{% autoescape on %}
-                                {{ object.payment_schedule | linebreaksbr }}
+                                {{ payment_schedule | linebreaksbr }}
                             {% endautoescape %}
-                        </dd>
-                      {% else %}
-                        <dd>None</dd>
-                      {% endif %}                       
+                        </dd>                       
                     </dl>
                 </ul>
             </li>         
     </div>
-
 {% endblock %}

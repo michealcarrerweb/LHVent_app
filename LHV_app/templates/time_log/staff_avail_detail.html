@@ -1,0 +1,28 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ object }}
+                </a>
+                <ul>
+                    <a href="{% url 'time_log:staff_avail_add' object.pk %}">Add Day Schedule
+                </a>
+                </ul>
+            </legend>
+        </div>
+        <div class="list-group">
+        <li class="list-group-item">
+            <ul>Start time for every {{ object.day }}: {{ object.scheduled_start }}</ul>
+            <ul>Start time for every {{ object.day }}: {{ object.scheduled_end }}</ul>
+        </li>         
+    </div>
+    </div>
+
+{% endblock %}

@@ -1,36 +1,25 @@
-{% extends "_menu.html" %}
+{% extends "list.html" %}
 
-{% load i18n %}
+{% block links %}
+  <a href="{% url 'product:item_create' %}">New Item</a>
+{% endblock %}
 
-{% load bootstrap %}
-
-{% block head_title %}{{ title }}{% endblock %}
-
-{% block body %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <legend>{{ title }}
-            <a href="{% url 'product:item_create' %}" 
-                class="btn btn-default" role="button">Add
-                </a>
-            </legend>
-        </div>
-        {% for obj in object_list %}
-        <div class="panel-body">
-            <li class="list-group-item">
-                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
-            {% if obj.supplier.no_longer_use %}
-                 - supplier discontinued - {{ obj.discontinued }}
-            {% endif %}
-            {% if obj.no_longer_available %}
-                 - no longer use this product as of {{ obj.discontinued }}
-            
-            {% elif obj.order_now %}
-                 - ORDER NOW
-            {% endif %} 
-                 - <a href="{% url 'product:item_add_damaged' obj.slug %}">Add Damaged</a>
-                 - <a href="{% url 'product:item_add' obj.slug %}">Add to Quantity</a> 
-        </div>
-        {% endfor %}
-    </div>
+{% block body_options %}
+  {% for obj in object_list %}
+    <li class="list-group-item">
+      <ul>
+        <dt><a href="{{ obj.get_absolute_url }}">{{ obj }}</a> ~ <a href="{% url 'product:item_add_damaged' obj.slug %}">Add Damaged</a> ~ <a href="{% url 'product:item_add' obj.slug %}">Add to Quantity</a> </dt>
+        <dt>
+          {% if obj.supplier.no_longer_use %}
+             ~ supplier discontinued ~ {{ obj.discontinued }}
+          {% endif %}
+          {% if obj.no_longer_available %}
+             ~ no longer use this product as of {{ obj.discontinued }}           
+          {% elif obj.order_now %}
+             ~ ORDER NOW
+          {% endif %}
+        </dt>
+      </ul>
+    </li>       
+  {% endfor %}
 {% endblock %}

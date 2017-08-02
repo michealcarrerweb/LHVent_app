@@ -93,7 +93,7 @@ class Account(models.Model):
         return account
 
     def __str__(self):
-        return str(self.user)
+        return str(self.user.full_family_name())
 
     def now(self):
         """

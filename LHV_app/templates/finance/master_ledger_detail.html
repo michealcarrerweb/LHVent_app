@@ -4,50 +4,71 @@
 
 {% load bootstrap %}
 
-{% block head_title %}{{ title }}{% endblock %}
+{% block head_title %}{{ object }}{% endblock %}
 
 {% block body %}
     <div class="panel panel-default">
         <div class="panel-heading">
             <legend>{{ object }}</legend>
-            <ul><strong>Current Net Income against Cost:</strong> ${{ object.get_balance_sheet }}</ul>
-            <ul><strong>Projected Net Profit:</strong> ${{ object.get_projected_balance_sheet }} *excluding taxes.</ul>
-            {% if object.customer_conflicts %}
-            <ul>There 
-                {% if object.customer_conflicts > 1 %} are <strong style="color:#ff4000;"> {{ object.customer_conflicts }} customer <a href="{% url "customer_finance:invoice_lists" "conflicted" %}">conflicts</a></strong> 
-                {% else %} is a <strong style="color:#ff4000;">customer <a href="{% url "customer_finance:invoice_lists" "conflicted" %}">conflict</a></strong>
-                {% endif %} 
-                pending.
-            </ul>
-            {% endif %}
-            {% if object.operational_conflict > 0 %}
-            <ul>There 
-                {% if object.operational_conflict > 1 %} are <strong style="color:#ff4000;"> {{ object.operational_conflict }} operational billing conflicts</strong> 
-                {% else %} is an <strong style="color:#ff4000;">operational billing conflict</strong>
-                {% endif %} 
-                pending, <a href="{% url "operation_finance:invoice_conflict_list" %}">see notes</a>.
-            </ul>
-            {% endif %}
+            <ul><strong>Current net income before tax against cost:</strong> ${{ net_profit }}</ul>
+            <ul><strong>Projected income before tax:</strong> ${{ projected_before_tax|floatformat:2 }}</ul>
         </div>
     </div>
     <li class="list-group-item">
-        <ul><strong>Client</strong></ul>
-        <ul>Client total invoiced: ${{ object.client_tot_invoiced }}</ul>
-        <ul>Client taxes invoiced: ${{ object.taxes_invoiced }}</ul>
-        <ul>Client {% if object.client_balance != 0 %}
+        <ul><strong>Client Revenue</strong></ul>
+        <ul>Client invoice count: {{ customers_count }}</ul>
+        <ul>Client total invoiced: ${{ customers_total }}</ul>
+        <ul>Client taxes invoiced: ${{ customers_taxes }}</ul>
+        <ul>Client invoiced net: ${{ customers_profit }}</ul>
+        <ul>Client {% if customers_balances != 0 %}
             <a href="{% url "customer_finance:invoice_lists" "owed" %}">outstanding cost
             </a>
             {% else %}balance
-            {% endif %}: ${{ object.client_balance }}</ul>
+            {% endif %}: $ {{ customers_balances }}
+        </ul>
+        <ul>Client conflicts: {{ customers_conflicts }}, with {% if customers_unresolved_conflicts != 0 %}
+            <a href="{% url "customer_finance:invoice_lists" "conflicted" %}">{{ customers_unresolved_conflicts }} 
+            </a>
+            {% else %}{{ customers_unresolved_conflicts }}
+            {% endif %}
+            outstanding
+        </ul>
     </li>
     <li class="list-group-item">
-        <ul><strong>Operation</strong></ul>
-        <ul>Operations total cost: {{ object.operation_tot_expenses }}</ul>
-        <ul>Operation {% if object.operation_balance != 0 %}
-            <a href="{% url "operation_finance:invoice_owed_list" %}">outstanding cost
+        <ul><strong>Operational Costs</strong></ul>
+        <ul>Operations total invoices: {{ operation_count }}</ul>
+        <ul>Operations total cost: {{ operation_expenses }}</ul>
+        <ul>Operation {% if operation_balances != 0 %}
+            <a href="{% url "operation_finance:invoice_lists" "owed" %}">outstanding cost
             </a>
             {% else %}balance
-            {% endif %}: {{ object.operation_balance }}</ul>
+            {% endif %}: {{ operation_balances }}
+        </ul>
+        <ul>Operation conflicts: {{ operation_conflicts }}, with {% if operation_unresolved_conflicts != 0 %}
+            <a href="{% url "operation_finance:invoice_lists" "conflicted" %}">{{ operation_unresolved_conflicts }} 
+            </a>
+            {% else %}{{ operation_unresolved_conflicts }}
+            {% endif %}
+            outstanding
+        </ul>
+    </li>
+    <li class="list-group-item">
+        <ul><strong>Payroll</strong></ul>
+        <ul>Operations total invoices: {{ operation_count }}</ul>
+        <ul>Operations total cost: {{ operation_expenses }}</ul>
+        <ul>Operation {% if operation_balances != 0 %}
+            <a href="{% url "operation_finance:invoice_lists" "owed" %}">outstanding cost
+            </a>
+            {% else %}balance
+            {% endif %}: {{ operation_balances }}
+        </ul>
+        <ul>Operation conflicts: {{ operation_conflicts }}, with {% if operation_unresolved_conflicts != 0 %}
+            <a href="{% url "operation_finance:invoice_lists" "conflicted" %}">{{ operation_unresolved_conflicts }} 
+            </a>
+            {% else %}{{ operation_unresolved_conflicts }}
+            {% endif %}
+            outstanding
+        </ul>
     </li>        
 {% endblock %}
 

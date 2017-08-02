@@ -1,29 +1,23 @@
-{% extends "_menu.html" %}
+{% extends "list.html" %}
 
-{% load i18n %}
+{% block links %}
+<a href="{% url 'staff_signup' %}">New Staff</a><br>
+{% endblock %}
 
-{% load bootstrap %}
-
-{% block head_title %}{{ title }}{% endblock %}
-
-{% block body %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <legend>{{ title }}
-                <a href="{% url 'staff_signup' %}" 
-                class="btn btn-default" role="button">Add New Staff
-                </a> 
-            </legend>
-        </div>
-    </div>
-       {% for staff in staff_list %}
-            <li class="list-group-item">
-                <a href="{% url 'staff_detail' staff.account.pk %}"> 
-                {{ staff.username }}</a> 
-                {% if staff.account.is_active == False %} - DEACTIVATED {% endif %}
-                {% if staff.account.initial_password %} - Temporary Password: {{ staff.account.initial_password }}
-                {% else %} - <a href="{% url 'time_log:staff_log_list' staff.pk %}">View work schedule</a>
-                {% endif %}           
-            </li>
-        {% endfor %}
+{% block body_options %}
+  {% for staff in staff_list %}
+    <li class="list-group-item">
+      <ul>
+        <dt><a href="{{ staff.get_absolute_url }}">{{ staff.username }}</a> - 
+          {% if staff.account.is_active == False %}
+           - DEACTIVATED on {{ staff.last_modified }} - 
+          {% endif %}
+          {% if staff.account.initial_password %}
+           Temporary Password: {{ staff.account.initial_password }} -                    
+          {% endif %}
+          <a href="{% url 'time_log:staff_avail_list' pk=staff.pk %}">Schedule Availability</a>                 
+        </dt>
+      </ul>
+    </li>      
+  {% endfor %}
 {% endblock %}

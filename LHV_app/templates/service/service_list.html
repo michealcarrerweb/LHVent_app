@@ -1,23 +1,11 @@
-{% extends "_menu.html" %}
+{% extends "list.html" %}
 
-{% load i18n %}
-
-{% load bootstrap %}
-
-{% block head_title %}{{ title }}{% endblock %}
-
-{% block body %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <legend>{{ title }}</legend>
-        </div>
-    </div>
-        {% for obj in object_list %}
-            <li class="list-group-item">
-                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
-                    {% if obj.service_no_longer_available %}
-                         - no longer use this service
-                    {% endif %}                
-            </li>
-        {% endfor %}
+{% block body_options %}
+  {% for obj in object_list %}
+	<li class="list-group-item">
+	  <ul>
+        <dt><a href="{{ obj.get_absolute_url }}">{{ obj }}</a>{% if obj.service_no_longer_available %} ~ No longer use this service{% endif %}</dt>
+	  </ul>
+	</li>
+  {% endfor %}
 {% endblock %}

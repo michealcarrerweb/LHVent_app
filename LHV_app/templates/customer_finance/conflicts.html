@@ -1,17 +1,42 @@
 {% extends "list.html" %}
 
 {% block links %}
-	{% include 'customer_finance/_href.html' %}
+  <a href="{% url "customer_finance:invoice_create"%}">
+    New Invoice
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "owed" %}">
+    Invoices wth Balances
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "conflicted" %}">
+    Invoices wth Conflicts
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "active" %}">
+    All Active Invoices
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "all" %}">
+    All Invoices
+  </a>
 {% endblock %}
 
 {% block body_options %}
-    {% for obj in object_list %}
-        <li class="list-group-item">
-            Conflict: <a href="{{ obj.get_absolute_url }}">{{ obj }}</a> -- 
-            On: {{ obj.origin }}
-             - <a href="{% url "customer_finance:conflict_resolve" obj.slug %}">
-                 Resolve        
-        </li>
-    {% endfor %}
-    {% include 'customer_finance/_pagination.html' %}
+  {% if object_list %}
+  {% for obj in object_list %}
+    <li class="list-group-item">
+      <ul>
+        <dt><a href="{% url 'customer_finance:invoice_detail' slug=obj.invoice.slug %}">{{ obj }}</a></dt>
+          <dd>Conflict: <a href="{{ obj.get_absolute_url }}">"{{ obj.conflict_description }}"</a> On: {{ obj.origin }}</dd>
+        <dt><a href="{% url "customer_finance:conflict_resolve" obj.pk %}">Resolve Conflict</a></dt>
+      </ul>       
+    </li>
+  {% endfor %}
+  {% else %}
+    <li class="list-group-item">
+      <ul>
+        <dl>
+          <dt>Empty List</dt>
+        </dl>
+      </ul>
+    </li>
+  {% endif %}
+  {% include '_pagination.html' %}
 {% endblock %}

@@ -15,45 +15,12 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = (
-            "invoice", "plu", "invoice_amount", "due_by", "note",
+            "vendor", "plu", "invoice_amount", "due_by", "note", "file",
             "image",
         )
-        
-    def clean_invoice(self):
-        """
-        Handles validation.
-        """
-        return string.capwords(check_name(self.cleaned_data["invoice"]))
 
 
-class InvoiceUpdateForm(forms.ModelForm):
+class InvoiceUpdateForm(InvoiceForm):
 
-    class Meta:
-        model = Invoice
-        fields = (
-            "invoice", "plu", "invoice_amount", "due_by", "note",
-            "conflict", "conflict_description", "image", 
-        )
-        
-    def clean_invoice(self):
-        """
-        Handles validation.
-        """
-        return string.capwords(check_name(self.cleaned_data["invoice"]))
-# class PricingForm(forms.ModelForm):
-#     class Meta:
-#         model = Pricing
-#         fields = ('pricing', 'percentage',)
-        
-#     def clean_pricing(self):
-#         """
-#         Handles validation.
-#         """
-#         return string.capwords(check_name(self.cleaned_data["pricing"]))
-
-
-# class HourlyBaseForm(forms.ModelForm):
-#     class Meta:
-#         model = Hourly
-#         fields = ('hourly_base',)
-#         
+    pass
+             

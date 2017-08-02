@@ -161,12 +161,14 @@ INSTALLED_APPS = [
 
     # theme
     "bootstrapform",
+    "bootstrap3",
     "pinax_theme_bootstrap",
 
     # external
     "account",
     "pinax.eventlog",
     "pinax.webanalytics",
+    "suit",
     "versatileimagefield",
     "schedule",
     "datetimewidget",

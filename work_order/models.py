@@ -4,26 +4,22 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import pre_save, post_save
-from django.urls import reverse_lazy, reverse
+from django.db.models.signals import pre_save
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
-from django.shortcuts import get_object_or_404
 
 from stock.models import Product
-from service.models import Service, PartsForService
+from service.models import Service
+from source_utils.starters import CommonInfo
 
-from model_utils import FieldTracker
 
-
-class Order(models.Model):
+class Order(CommonInfo):
     """ This model represents an order created for a customer. """
-    slug = models.SlugField(
-        blank=True
-    )
     client = models.ForeignKey(
-        User, 
+        User,
+        related_name='work_order_client', 
         limit_choices_to={'is_staff': False}, 
         on_delete=models.CASCADE
     )
@@ -39,15 +35,16 @@ class Order(models.Model):
     services = models.ManyToManyField(
         'service.Service', 
         blank=True
-    )
-    scheduled = models.BooleanField(
-        default=False
-    )
+    )   
     sent_to_finance = models.BooleanField(
         default=False
     )
-    postponed = models.BooleanField(
-        verbose_name="Order postponed", 
+    scheduled = models.DateTimeField(
+        "Product scheduled", 
+        blank=True, 
+        null=True
+    )
+    time_requirements_filled = models.BooleanField(
         default=False
     )
     pulled = models.DateTimeField(
@@ -62,11 +59,13 @@ class Order(models.Model):
     work_completed = models.DateTimeField(
         blank=True, 
         null=True
-    )
-    order_created = models.DateField(
-        auto_now_add=True
     )      
     closed_out = models.DateTimeField(
+        blank=True, 
+        null=True
+    )
+    postponed = models.DateTimeField(
+        "Service postponed", 
         blank=True, 
         null=True
     )    
@@ -77,38 +76,35 @@ class Order(models.Model):
         null=True
     ) 
 
-    order_tracker = FieldTracker(
-        fields=['client', 'description', 'postponed', 'pulled', 'work_completed']
-    )
 
     class Meta:
-        ordering = ["order_created", "client"]
+        ordering = ["origin", "client"]
         unique_together = ("client", "description")
 
-    def __init__(self, *args, **kwargs):
-        super(Order, self).__init__(*args, **kwargs)
-        self.all_time = 0
-        self.all_cost = 0
-        self.parts_list = ""
-        self.services_list = ""
-
     def __str__(self):
-        name = self.client.first_name
-        if self.client.account.spouse_name:
-            name += " and " + self.client.account.spouse_name
-        return "{} {} - {} ({})".format(
-            name, self.client.last_name, self.description, self.order_created
+        return "{} - {} ({})".format(
+            self.client.full_family_name(), 
+            self.description, 
+            self.origin.strftime("%Y-%m-%d")
         )
 
     def get_services_parts_time_cost_list(self):
+        all_time = 0
+        all_cost = 0
+        parts_list = ""
 
         for service in self.services.all():
             time, cost, parts = service.get_parts_time_cost_list()
-            self.all_time += time
-            self.all_cost += cost
-            self.parts_list += parts
-        # print(self.all_time, self.all_cost, self.parts_list)
-        return self.all_time, self.all_cost, self.parts_list
+            all_time += time
+            all_cost += cost
+            parts_list += parts
+        return all_time, all_cost, parts_list
+
+    def check_for_close_out(self):
+        if self.work_completed and not self.postponed and self.sent_to_finance \
+            and self.work_initiated and self.pulled and self.scheduled:
+            return True
+        return False
 
     def get_absolute_url(self):
         return reverse("work_order:order_detail", kwargs={"slug": self.slug})
@@ -118,22 +114,11 @@ class Order(models.Model):
 
 
 def pre_save_order(sender, instance, *args, **kwargs):
-    spouse = ""
-    if instance.client.account.spouse_name:
-        spouse = " and " + instance.client.account.spouse_name
-    slug = (
-        instance.client.first_name + spouse + " " + 
-        instance.client.last_name + " - " + instance.description + " " + 
+    slug = "{} - {} ({})".format(
+        instance.client.full_family_name(), 
+        instance.description, 
         str(datetime.date.today())
     )
     instance.slug = slugify(slug)
-    instance.last_modified = timezone.now()
-    items = instance.order_tracker.changed()
-    for item in items:
-        if items[item] != None:
-            new_log = "{} altered from {} on {}\n".format(
-                item, items[item], datetime.datetime.today()
-            )
-            instance.job_history += new_log
 
 pre_save.connect(pre_save_order, sender=Order)

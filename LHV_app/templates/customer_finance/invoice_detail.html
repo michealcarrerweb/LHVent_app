@@ -13,65 +13,92 @@
                 <a href="{% url "customer_finance:invoice_update" object.slug %}">{{ object }}</a> - Invoice 
             </legend>
             {% if total_after_tax %}
-                <ul>Customer was quoted <strong style="color:black">${{ total_after_tax }}</strong>
-                 - <a href="{% url "customer_finance:invoice_give_quote" object.slug %}">Re-quote
-                </a></ul>
-                <ul><a href="{% url 'customer_finance:invoice_pdf' slug=object.slug %}">{% trans "Create Printable Invoice" %}</a></ul>
+                <ul>
+                    Customer was quoted <strong style="color:black">${{ total_after_tax }}</strong>
+                     - <a href="{% url "customer_finance:invoice_give_quote" object.slug %}">Re-quote</a>
+                </ul>
+                <ul>
+                    <a href="{% url 'customer_finance:invoice_pdf' slug=object.slug %}">{% trans "Create Printable Invoice" %}</a>
+                </ul>
             {% else %}
                 <ul style="color:#ff4000;">Customer was not quoted a price yet - <a href="{% url "customer_finance:invoice_give_quote" object.slug %}">Quote
                 </a></ul>
             {% endif %}
             {% if object.invoice_quote.total_price_quoted %}
                 {% if balance_due > 0 %}
-                <ul style="color:#ff4000;"><a href="{% url "customer_finance:alteration_create" object.slug %}">Balance Due</a>: ${{ balance_due|floatformat:2 }}</ul>
-                {% elif balance_due == 0 %}<ul>Paid in full</ul>
-                {% elif balance_due < 0 %}<ul><a href="{% url "customer_finance:alteration_create" object.slug %}"><strong style="color:#ff4000;">OVER PAID</strong></a>: ${{ balance_due|floatformat:2 }}   
+                    <ul style="color:#ff4000;">
+                        <a href="{% url "customer_finance:alteration_create" object.slug %}">Balance </a>Due {% if object.due_by %} by {{ object.due_by }}{% endif %}: <strong style="color:black">${{ balance_due|floatformat:2 }}</strong> 
+                    </ul>
+                {% elif balance_due == 0 %}
+                    <ul>Paid in full</ul>
+                {% elif balance_due < 0 %}
+                    <ul>
+                        <a href="{% url "customer_finance:alteration_create" object.slug %}"><strong style="color:#ff4000;">OVER PAID</strong></a>: ${{ balance_due|floatformat:2 }}   
                 </ul>
                 {% endif %}                
             {% endif %}
-            {% if object.invoice_quote.total_price_quoted and not object.paid_in_full %}
+            <ul>
+                <a href="{% url "customer_finance:conflict_create" object.slug %}">Add Conflict</a>
+            </ul>
+            {% if not object.closed_out and balance_due == 0 and object.work_order.closed_out and not object.check_for_conflicts %}
+            <ul>
+                <a href="{% url "customer_finance:close_out" object.slug %}" >Close Out Invoice</a>
+            </ul>
             {% endif %}
         </div>
-            {% if object.conflict.all %}
-            <li class="list-group-item">
-                {% for conflicts in object.conflict.all %}
-                <ul><strong style="color:#ff4000;">Conflict:</strong> "<a href="{% url 'customer_finance:conflict_update' slug=conflicts.slug %}">{{ conflicts.conflict_description }}</a>" - {{ conflicts.origin }}  {% if conflicts.conflict_resolution %}<br><strong style="color:black">Resolved</strong>: "<a href="{% url 'customer_finance:conflict_resolve' slug=conflicts.slug %}">{{ conflicts.conflict_resolution }}</a>" - {{ conflicts.last_modified }}{% else %} - <a href="{% url 'customer_finance:conflict_resolve' slug=conflicts.slug %}">{% trans "Resolve" %}</a>{% endif %}</ul>
-                {% endfor %}
-            </li>
-            {% endif %}
-            {% if object.note %}
-            <li class="list-group-item">
-                <ul>Notes: {{ object.note }}</ul>
-            </li>
-            {% endif %}
-            <li class="list-group-item">
-                <ul>Order: {{ object.work_order }}</ul>
-                <ul>Pricing: {{ object.pricing }}</ul>
-                <ul>Costs before tax: ${{ before_tax }}</ul>
-                <ul>Sales Tax: ${{ total_tax }} at {{ object.tax }}%</ul>
-                <ul><strong>Total including taxes: ${{ total_after_tax }}</strong></ul>         
-            </li>
-            <li class="list-group-item">
+        {% if object.conflict.all %}
+        <li class="list-group-item">
+            {% for conflicts in object.conflict.all %}
                 <ul>
-                    <dl>
-                      <dt>Payments/Fees:</dt>
-                        <dd>{% autoescape on %}
-                                {{ payment_schedule | linebreaksbr }}
-                            {% endautoescape %}
-                        </dd>                       
-                    </dl>
-                    <dl>
-                      <dt>Log:</dt>
-                      {% if object.log %}
-                        <dd>{% autoescape on %}
-                                {{ object.log | linebreaksbr }}
-                            {% endautoescape %}
-                        </dd>
-                      {% else %}
-                        <dd>None</dd>
-                      {% endif %}                       
-                    </dl>
+                    <strong style="color:#ff4000;">Conflict:</strong>
+                        <a href="{% url 'customer_finance:conflict_update' pk=conflicts.pk %}">{{ conflicts.conflict_description }}</a>
+                             - {{ conflicts.origin }}  
+                    {% if conflicts.conflict_resolution %}
+                    <br>
+                    <strong style="color:black">Resolved</strong>:
+                        <a href="{% url 'customer_finance:conflict_resolve' pk=conflicts.pk %}">{{ conflicts.conflict_resolution }}</a>
+                             - {{ conflicts.last_modified }}
+                    {% else %}
+                         - <a href="{% url 'customer_finance:conflict_resolve' pk=conflicts.pk %}">{% trans "Resolve" %}</a>
+                    {% endif %}
                 </ul>
-            </li>         
+            {% endfor %}
+        </li>
+        {% endif %}
+        {% if object.note %}
+        <li class="list-group-item">
+            <ul>Notes: {{ object.note }}</ul>
+        </li>
+        {% endif %}
+        <li class="list-group-item">
+            <ul>Order: {{ object.work_order }}</ul>
+            <ul>Pricing: {{ object.pricing }}</ul>
+            <ul>Costs before tax: ${{ before_tax }}</ul>
+            <ul>Sales Tax: ${{ total_tax }} at {{ object.tax }}%</ul>
+            <ul><strong>Total including taxes: ${{ total_after_tax }}</strong></ul>         
+        </li>
+        <li class="list-group-item">
+            <ul>
+                <dl>
+                  <dt>Payments/Fees:</dt>
+                    <dd>{% autoescape on %}
+                            {{ payment_schedule | linebreaksbr }}
+                        {% endautoescape %}
+                    </dd>                       
+                </dl>
+                <dl>
+                  <dt>Log:</dt>
+                  {% if object.log and object.log != 0.00 %}
+                    <dd>
+                    {% autoescape on %}
+                        {{ object.log | linebreaksbr }}
+                    {% endautoescape %}
+                    </dd>
+                  {% else %}
+                    <dd>None</dd>
+                  {% endif %}                       
+                </dl>
+            </ul>
+        </li>         
     </div>
 {% endblock %}

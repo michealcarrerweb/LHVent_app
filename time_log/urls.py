@@ -4,30 +4,40 @@ from django.conf.urls import url
 from django.contrib import admin
 
 from .views import (
-	StaffLogDetail, StaffLogList, StaffLogCreate, StaffLogUpdate, 
-	StaffLogDelete, StaffAndTimeCreate, StaffList, ClientList
+    AvailabilityForDayList, AvailabilityStaffCreate, AvailabilityForDayCreate, 
+    AvailabilityForDayUpdate, AvailabilityForDayDelete, TimeDayList
 )
-from account.views import StaffUpdateView
+
+# from .views import (
+#     # AvailabilityForDayList, AvailabilityForDayDetail, AvailabilityForDayCreate,
+#     # AvailabilityForDayUpdate, AvailabilityForDayDelete, AvailabilityStaffCreate
+# )
 
 
 app_name = 'time_log'
 urlpatterns = [
+    url(r'^day_time_availability/$', TimeDayList.as_view(), 
+                    name="day_time_avail_list"),
 
-	# url(r'^staff/$', StaffList.as_view(), 
-	# 				name="staff_list"),
-	# url(r'^clients/$', ClientList.as_view(), 
-	# 				name="client_list"),
-	url(r'^staff_log/(\d+)/$', StaffLogList.as_view(), 
-					name="staff_log_list"),	
-	url(r'^staff_log/create/$', StaffLogCreate.as_view(), 
-					name="staff_log_create"),	
-	url(r'^staff_log/(?P<slug>[-\w]+)/$', StaffLogDetail.as_view(), 
-					name="staff_log_detail"),
-	url(r'^staff_log/(?P<slug>[-\w]+)/update/$', StaffLogUpdate.as_view(), 
-					name="staff_log_update"),
-	url(r'^staff_log/(?P<slug>[-\w]+)/delete/$', StaffLogDelete.as_view(), 
-					name="staff_log_delete"),
-	url(r'^staff/(?P<pk>\d+)/update/$', StaffUpdateView.as_view(), 
-					name="staff_update"),
+    url(r'^staff_avail/(?P<pk>\d+)/$', AvailabilityForDayList.as_view(), 
+                    name="staff_avail_list"),       
+    url(r'^staff_avail/create/$', AvailabilityStaffCreate.as_view(), 
+                    name="staff_initial_create"),
+    url(r'^staff_avail/(?P<pk>\d+)/add/$', AvailabilityForDayCreate.as_view(), 
+                    name="staff_avail_add"),
+    url(r'^staff_avail/(?P<pk>\d+)/update/$', AvailabilityForDayUpdate.as_view(), 
+                    name="staff_avail_update"),
+    url(r'^staff_avail/(?P<pk>\d+)/delete/$', AvailabilityForDayDelete.as_view(), 
+                    name="staff_avail_delete"),
 
+    # url(r'^staff_avail/(?P<pk>\d+)/$', AvailabilityForDayList.as_view(), 
+    #                 name="staff_avail_list"),       
+    # url(r'^staff_avail/create/$', AvailabilityStaffCreate.as_view(), 
+    #                 name="staff_initial_create"),
+    # url(r'^staff_avail/(?P<pk>\d+)/add/$', AvailabilityForDayCreate.as_view(), 
+    #                 name="staff_avail_add"),
+    # url(r'^staff_avail/(?P<pk>\d+)/update/$', AvailabilityForDayUpdate.as_view(), 
+    #                 name="staff_avail_update"),
+    # url(r'^staff_avail/(?P<pk>\d+)/delete/$', AvailabilityForDayDelete.as_view(), 
+    #                 name="staff_avail_delete"),
 ]

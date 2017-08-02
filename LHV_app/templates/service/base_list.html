@@ -1,24 +1,15 @@
-{% extends "_menu.html" %}
+{% extends "list.html" %}
 
-{% load i18n %}
+{% block links %}
+  <a href="{% url 'service:base_service_create' %}">New Service Category</a>
+{% endblock %}
 
-{% load bootstrap %}
-
-{% block head_title %}{{ title }}{% endblock %}
-
-{% block body %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <legend>{{ title }}
-                
-            </legend>
-            <a href="{% url 'service:base_service_create' %}">Add</a>
-        </div>
-    </div>
-    {% for obj in object_list %}
-    <li class="list-group-item">
-        <a href="{% url "service:service_for_base_list" obj.slug %}">{{ obj }}</a>
-         - <a href="{% url "service:service_create" obj.slug %}">Add Service</a>
-    </li>
-    {% endfor %}   
+{% block body_options %}
+  {% for obj in object_list %}
+  <li class="list-group-item">
+    <ul>
+      <dt><a href="{% url "service:service_for_base_list" obj.slug %}">{{ obj }}</a> ~ <a href="{% url "service:service_create" obj.slug %}">New Service</a></dt>
+    </ul>
+  </li>
+  {% endfor %}
 {% endblock %}

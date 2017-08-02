@@ -1,13 +1,19 @@
 import re
+import string
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
+# alnum_re = re.compile(r"^\w+$")
+alnum_re = re.compile(r'^[\w.@+-]+$')#re.compile(r"^\w+$")
 only_letters = re.compile(r'^[a-z A-Z \']+$')
 company_name_check = re.compile(r'^[a-z A-Z \' 0-9]+$')
+check_names = re.compile(r'^[\w]{2,}$')
 check_phone = re.compile(r'^[0-9]{10}$')
 check_mod_phone = re.compile(r'^\+1([0-9]{10})$')
 check_mod_space_phone = re.compile(r'^([0-9]{3})( *)([0-9]{3})( *)([0-9]{4})$')
+check_zip = re.compile(r'^[0-9]{5}$')
+check_time_input = re.compile(r'^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$')
 
 
 def check_name(name):
@@ -17,7 +23,7 @@ def check_name(name):
     if not only_letters.search(name):
         raise forms.ValidationError(_('Enter a valid name. This \
                                       value must contain only letters.'))
-    return name.capitalize()
+    return string.capwords(name)
 
 
 def check_phone_options(value):
@@ -33,17 +39,3 @@ def check_phone_options(value):
         raise forms.ValidationError(_('Enter a valid phone number\
                                       - ex. 2223334444.')) 
 
-
-# class CapitalizeForm(forms.ModelForm):
-
-#     class Meta:
-#         model = Invoice
-#         fields = (
-#             "total_price_quoted", "pricing", "tax", "note", 
-#         )
-
-#     def __init__(self, *args, **kwargs):
-#         super(GiveQuoteForm, self).__init__(*args, **kwargs)
-#         instance = getattr(self, 'instance', None)
-#         if instance and instance.id:
-#             self.fields['total_price_quoted'].widget.attrs['readonly'] = True

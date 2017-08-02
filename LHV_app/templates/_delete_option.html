@@ -1,0 +1,3 @@
+{% if request.user.is_superuser and url_insert %}
+	      <ul><a href="{% url ""|add:url_insert object.slug %}">Delete</a> * But use extreme caution!</ul>
+{% endif %}

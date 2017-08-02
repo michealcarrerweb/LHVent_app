@@ -8,89 +8,73 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.views.generic.edit import (
-	CreateView, 
-	UpdateView, 
-	DeleteView, 
-	FormView
+    CreateView, 
+    UpdateView, 
+    DeleteView, 
+    FormView
 )
 from .forms import (
-	CompanyCreateForm, 
-	CompanyUpdateForm
+    CompanyCreateForm, 
+    CompanyUpdateForm
 )
 from .models import Company
 from source_utils.permission_mixins import (
-	SuperUserCheckMixin, 
-	ManagerCheckMixin,
-	WarehouseAndManagerCheckMixin
+    SuperUserCheckMixin, 
+    ManagerCheckMixin,
+    WarehouseAndManagerCheckMixin
 )
+from source_utils.view_mixins import DeleteViewMixin
 
 
 class CompanyAuthMixin(ManagerCheckMixin):
-	model = Company
-	title = ""
-
-	def get_context_data(self, **kwargs):
-		context = super(CompanyAuthMixin, self).get_context_data(**kwargs)
-		context['title'] = self.title
-		return context
+    model = Company
 
 
 class CompanyDetail(CompanyAuthMixin, DetailView):
-	template_name = "product/company_detail.html"
+    template_name = "company/company_detail.html"
+    url_insert = "company:company_delete"
 
 
 class CompanyList(CompanyAuthMixin, ListView):
-	template_name = "product/company_list.html"
-	title = "Suppliers"
+    template_name = "company/company_list.html"
+    title = "Supplier List"
 
 
 class CompanyMessageMixin(CompanyAuthMixin, SuccessMessageMixin):
-	template_name = "form.html"
-	success_url = reverse_lazy('company:company_list')
-	user_check_failure_path = '403'
+    template_name = "form.html"
+    success_url = reverse_lazy('company:company_list')
+    user_check_failure_path = '403'
+
+    def get_success_message(self, cleaned_data):
+        return self.success_message % dict(
+            cleaned_data,
+            company=self.object.company,
+        )
 
 
 class CompanyCreate(CompanyMessageMixin, CreateView):
-	success_message = "%(company)s was successfully created"
-	form_class = CompanyCreateForm
-	title = "Supplier Create"
-
-	def get_success_message(self, cleaned_data):
-		return self.success_message % dict(
-			cleaned_data,
-			company=self.object.company,
-		)
+    success_message = "%(company)s was successfully created"
+    form_class = CompanyCreateForm
+    title = "New Supplier"
 
 
 class CompanyUpdate(CompanyMessageMixin, UpdateView):
-	success_message = "%(company)s was successfully updated"
-	form_class = CompanyUpdateForm
-	title = "Supplier Update"
-	
-	def get_success_message(self, cleaned_data):
-		return self.success_message % dict(
-			cleaned_data,
-			company=self.object.company,
-		)
+    success_message = "%(company)s was successfully updated"
+    form_class = CompanyUpdateForm
+    title = "Update Supplier"
 
-	def dispatch(self, request, *args, **kwargs):
-		if "any-store" in request.path:
-			return redirect(self.user_check_failure_path)
-		return super(CompanyUpdate, self).dispatch(request, *args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        if "any-store" in request.path:
+            return redirect(self.user_check_failure_path)
+        return super(CompanyUpdate, self).dispatch(request, *args, **kwargs)
 
 
-class CompanyDelete(SuperUserCheckMixin, DeleteView):
-	model = Company
-	template_name = "delete.html"
-	success_url = reverse_lazy('company:company_list')
-	success_message = "Company was successfully deleted"
-	user_check_failure_path = '403'
+class CompanyDelete(DeleteViewMixin):
+    model = Company
+    success_url = reverse_lazy('company:company_list')
+    user_check_failure_path = '403'
 
-	def dispatch(self, request, *args, **kwargs):
-		if "any-store" in request.path:
-			return redirect(self.user_check_failure_path)
-		return super(CompanyDelete, self).dispatch(request, *args, **kwargs)
-
-	def delete(self, request, *args, **kwargs):
-		messages.success(self.request, self.success_message)
-		return super(CompanyDelete, self).delete(request, *args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        if "any-store" in request.path:
+            return redirect(self.user_check_failure_path)
+        return super(CompanyDelete, self).dispatch(request, *args, **kwargs)

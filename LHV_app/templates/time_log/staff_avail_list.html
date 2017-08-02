@@ -1,0 +1,45 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend>{{ title }}</legend>           
+        </div>
+    </div>
+    {% if not object_list %}
+      <li class="list-group-item">
+        <ul>
+          <dt>
+            Availability For This Staff Has Not Been <a href="{% url 'time_log:staff_initial_create' %}"> Created </a>Yet
+          </dt>
+        </ul>
+      </li>
+    {% else %}
+    {% for obj in object_list %}
+      <li class="list-group-item">
+        <ul>
+          <dt>
+              <a href="{% url 'time_log:staff_avail_update' obj.pk %}">{{ obj.day }}</a>: {{ obj.start }} until {{ obj.end }} ~~ <a href="{% url 'time_log:staff_avail_delete' obj.pk %}">Delete</a>
+          </dt>
+        </ul>
+      </li>
+      {% if forloop.last %}
+        {% if days_avail %}
+          <li class="list-group-item">
+            <ul>
+              <dt>
+                <a href="{% url 'time_log:staff_avail_add' pk=obj.staff %}">Add Another Day</a>
+              </dt>
+            </ul>
+          </li>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% endif %}    
+{% endblock %}

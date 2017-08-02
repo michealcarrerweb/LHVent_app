@@ -1,26 +1,16 @@
-{% extends "service/service_menu.html" %}
+{% extends "_menu.html" %}
 
 {% load i18n %}
+
 {% load bootstrap %}
 
-{% block body_class %}service services-detail{% endblock %}
+{% block head_title %}{{ object }}{% endblock %}
 
-{% block head_title %}{% trans "Service" %}{% endblock %}
-
-{% block body %}
+{% block full %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <legend>{{ object }} 
-                <a href="{% url "service:base_service_update" object.slug %}" 
-                    class="btn btn-default btn-sm" role="button">Update
-                </a>
-                {% if request.user.is_superuser %}
-                    <a href="{% url "service:base_service_delete" object.slug %}" 
-                        class="btn btn-warning btn-sm" role="button">Delete
-                    </a>
-                {% endif %}
-            </legend>
+            <legend><a href="{% url "service:base_service_update" object.slug %}">{{ object }}</a></legend>
+                {% include "_delete_option.html" %}
         </div>
     </div>
-
 {% endblock %}
