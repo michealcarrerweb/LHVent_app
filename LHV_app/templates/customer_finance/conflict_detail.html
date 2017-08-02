@@ -1,0 +1,28 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block full %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend><a href="{% url "customer_finance:conflict_update" object.pk %}">{{ object }}</a></legend>
+            <ul>
+                <a href="{% url "customer_finance:conflict_resolve" object.pk %}">Resolve</a>
+            </ul>
+            {% include "_delete_option.html" %}
+        </div>
+    </div>
+    {% if object.conflict_resolution %}
+    <li class="list-group-item">
+        <ul>
+          <dl>
+            <dt>Resolution on {{ object:last_modified }}: {{ object.conflict_resolution }}</dt>
+          </dl>
+        </ul>
+    </li>
+    {% endif %}           
+{% endblock %}

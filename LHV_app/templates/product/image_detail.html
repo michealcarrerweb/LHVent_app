@@ -9,16 +9,12 @@
 {% block body %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <legend>{{ object }} 
-                <a href="{% url "product:image_update" object.slug %}" 
-                    class="btn btn-default" role="button">Update
-                </a> 
-            </legend>
+            <legend>{{ object }}</legend>
         </div>
     </div>
     <div class="list-group">
         <li class="list-group-item">
-            <img src="{{ object.image.crop.800x800 }}" class="img-responsive"/></a>
+            <a href="{% url "product:image_update" object.slug %}"><img src="{{ object.image.crop.800x800 }}" class="img-responsive"/></a>
         </li>         
     </div>
 {% endblock %}

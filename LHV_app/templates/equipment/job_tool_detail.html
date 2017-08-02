@@ -4,35 +4,23 @@
 
 {% load bootstrap %}
 
-{% block head_title %}{{ title }}{% endblock %}
+{% block head_title %}{{ object }}{% endblock %}
 
-{% block body %}
+{% block full %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <legend>{{ object }} 
-                <a href="{% url "equipment:job_tool_update" object.slug %}" 
-                    class="btn btn-default" role="button">Update
-                </a> 
-                {% if request.user.is_superuser %}
-                <a href="{% url "equipment:job_tool_delete" object.slug %}" 
-                    class="btn btn-warning" role="button">Delete
-                </a>
-                {% endif %}
-            </legend>
+            <legend><a href="{% url "equipment:job_tool_update" object.slug %}">{{ object }}</a></legend>
+                {% include "_delete_option.html" %}
         </div>
     </div>
-    <div class="list-group">
-        {% if object.condition != 'good' %}
-            <ul>
-                <p>{{ object.item }} was  
-                    <strong>{{ object.is_condition }}</strong> on {{ object.incident }}.
-                </p>
-            </ul>
-        {% else %}
-        <li class="list-group-item">
-            <ul>Category: {{ object.base.category }}</ul>
-            <ul>Supplier: {{ object.supplier.company }}</ul>
-        </li>  
-        {% endif %}
-    </div>
+    <li class="list-group-item">
+        <ul>
+          <dl>
+          {% if object.condition != 'good' %}
+            <dt>{{ object.item }} was <strong>{{ object.is_condition }}</strong> on {{ object.incident }}</dt>
+          {% endif %}
+                <dd>Category: {{ object.base.category }}</dd>
+                <dd>Supplier: {{ object.supplier.company }}</dd>
+        </ul>
+    </li>
 {% endblock %}

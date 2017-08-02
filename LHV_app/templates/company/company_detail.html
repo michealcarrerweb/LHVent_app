@@ -1,0 +1,31 @@
+{% extends "_menu.html" %}
+
+{% load i18n %}
+
+{% load bootstrap %}
+
+{% block head_title %}{{ object }}{% endblock %}
+
+{% block full %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <legend><a href="{% url "company:company_update" object.slug %}">{{ object }}</a></legend>
+                {% include "_delete_option.html" %}
+        </div>
+    </div>
+    <li class="list-group-item">
+        <ul>
+          <dl>
+          {% if object.no_longer_use %}
+            <dt>As of {{ object.discontinued }}, we  <strong>no longer use this company</strong></dt>
+          {% endif %}
+            <dt>Details:</dt>
+                <dd>Address: {{ object.address }}</dd>
+                <dd>Main phone: {{ object.company_phone }}</dd>
+                <dd>Contact: {{ object.contact_first_name }} {{ object.contact_last_name }}</dd>
+                <dd>Contact phone: {{ object.phone }}</dd>
+                <dd>Contact email: {{ object.email }}</dd>
+          </dl>
+        </ul>
+    </li>
+{% endblock %}

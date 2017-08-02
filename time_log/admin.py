@@ -2,10 +2,14 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from .models import (DayLog, StaffLog, DayStaffLogDetails, DayStaffLogEntry)
+from .models import (
+	AvailabilityForDay, LoggedDay, StaffLogDetailsForDay, GenericActivity,
+	ScheduledTimeSlotEntry
+)
 
 
-admin.site.register(DayLog)
-admin.site.register(StaffLog)
-admin.site.register(DayStaffLogDetails)
-admin.site.register(DayStaffLogEntry)
+admin.site.register(AvailabilityForDay)
+admin.site.register(LoggedDay)
+admin.site.register(StaffLogDetailsForDay)
+admin.site.register(GenericActivity)
+admin.site.register(ScheduledTimeSlotEntry)

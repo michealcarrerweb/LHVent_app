@@ -8,4 +8,3 @@ from .models import Base, Product
 
 admin.site.register(Base)
 admin.site.register(Product)
-# admin.site.register(Company)

@@ -72,12 +72,6 @@ class Service(CommonInfo):
         default=False
     )
 
-    def __init__(self, *args, **kwargs):
-        super(Service, self).__init__(*args, **kwargs)
-        self.all_time = 0
-        self.all_cost = 0
-        self.parts_list = ""
-
     class Meta:
         verbose_name = _('Service')
         verbose_name_plural = _('Services')
@@ -90,33 +84,30 @@ class Service(CommonInfo):
         return reverse("service:service_detail", kwargs={'slug': self.slug})
 
     def get_parts_time_cost_list(self):
+        all_cost = 0
+        parts_list = ""
         hourly_rate = get_object_or_404(Hourly, pk=1)
         hourly_base = hourly_rate.hourly_base
         if self.hourly_additional:
             hourly_base += self.hourly_additional
         serve = Service.objects.get(slug=self.slug)
-        self.all_time = self.additional_hours
+        all_time = self.additional_hours
         for part in serve.parts.all():
-            ending = "\n"
+            ending = ""
             if part.product.no_longer_available:
-                ending = " - !! PART NO LONGER AVAILABLE !!\n"
-            elif part.product.quantity <= 0:
-                ending = " - !! PART OUT OF STOCK !!\n"
-            description = "{} {} - {}{}".format(
+                ending = " - !! PART NO LONGER AVAILABLE !!"
+            elif part.product.get_usable_quantity() <= 0:
+                ending = " - !! PART OUT OF STOCK !!"
+            parts_list += "{} {} - {}{}\n".format(
                 str(part.quantity),
                 part.product.quantity_assesement,
                 part.product.item,
                 ending
             )
-            self.parts_list += description
-            part_tot_time = (part.product.get_time() * part.quantity)
-            self.all_time += part_tot_time
-            part_tot_cost = (part.product.get_cost() * part.quantity)
-            self.all_cost += part_tot_cost
-        hourly_cost = self.all_time * hourly_base
-        self.all_cost += hourly_cost
-        # print(self.all_time, self.all_cost, self.parts_list)
-        return self.all_time, self.all_cost, self.parts_list
+            all_time += (part.product.get_time() * part.quantity)
+            all_cost += (part.product.get_cost() * part.quantity)
+        all_cost += all_time * hourly_base
+        return all_time, all_cost, parts_list
 
     def get_job_tools(self):
         return '\n'.join([t.tool for t in self.job_tools.all()])   

@@ -1,24 +1,23 @@
-{% extends "service/service_menu.html" %}
+{% extends "_menu.html" %}
 
 {% load i18n %}
+
 {% load bootstrap %}
 
-{% block body_class %}service services-detail{% endblock %}
+{% block head_title %}{{ object }}{% endblock %}
 
-{% block head_title %}{% trans "Service" %}{% endblock %}
-
-{% block body %}
+{% block full %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <legend>{{ object }} - ({{ object.base }})</legend>
-            <a href="{% url "service:service_update" object.slug %}">Update</a><br>
-            {% if request.user.is_superuser %}
-            <a href="{% url "service:service_delete" object.slug %}">Delete</a>
-            {% endif %}
+            <legend><a href="{% url "service:service_update" object.slug %}">{{ object }} - ({{ object.base }})</a></legend>
+            {% include "_delete_option.html" %}
         </div>
     </div>
     {% if object.service_no_longer_available %}
-    <ul><p>We<strong>no longer provide this service</strong></p></ul>
+    <li class="list-group-item">
+        <ul>
+            <dl>
+              <dt>We<strong>no longer provide this service</strong></dt>
     {% else %}
     <li class="list-group-item">
         <ul>Hours: {{ all_time|floatformat:2 }}</ul> 

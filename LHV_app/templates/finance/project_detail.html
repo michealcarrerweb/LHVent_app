@@ -10,14 +10,7 @@
     <div class="panel panel-default">
         <div class="panel-heading">
             <legend>{{ object }} - {{ object.ledger.ledger_name }}
-                <a href="{% url "finance:project_update" object.slug %}" 
-                    class="btn btn-default" role="button">Update
-                </a>
-                {% if request.user.is_superuser %}
-                    <a href="{% url "finance:project_delete" object.slug %}" 
-                        class="btn btn-warning" role="button">Delete
-                    </a>
-                {% endif %}
+                <a href="{% url "finance:project_update" object.slug %}">Update</a>
             </legend>
             {% if object.conflict %}
             <ul>
@@ -26,6 +19,7 @@
                 </h3>
             </ul>
             {% endif %}
+            {% include "_delete_option.html" %}
         </div>
         {% if object.note %}
         <li class="list-group-item">

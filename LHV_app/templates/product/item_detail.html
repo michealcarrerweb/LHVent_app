@@ -9,23 +9,14 @@
 {% block body %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <legend>{{ object }} 
-                <a href="{% url "product:item_update" object.slug %}" 
-                    class="btn btn-default" role="button">Update
-                </a> 
-                {% if request.user.is_superuser %}
-                <a href="{% url "product:item_delete" object.slug %}" 
-                    class="btn btn-warning" role="button">Delete
-                </a>
-                {% endif %}
-                {% if object.image %}
-                <a href="{% url "product:image_detail" object.slug %}" 
-                    class="btn btn-default" role="button">
+            <legend><a href="{% url "product:item_update" object.slug %}">{{ object }}</a>{% if object.image %}
+                <a href="{% url "product:image_detail" object.slug %}">
                     <img src="{{ object.image.crop.22x22 }}" class="img-responsive"/></a>
                 {% else %}
-                    No image
+                    *Need image
                 {% endif %}
             </legend>
+            {% include "_delete_option.html" %}
         </div>
     </div>
     <div class="list-group">

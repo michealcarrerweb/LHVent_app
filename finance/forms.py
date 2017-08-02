@@ -11,20 +11,6 @@ from .models import Pricing
 from source_utils.form_mixins import check_name
 
 
-# class LedgerForm(forms.ModelForm):
-#     class Meta:
-#         model = Ledger
-#         fields = ('parent', 'ledger_name', 'revenue',)
-#         widgets = {'parent': forms.HiddenInput(),
-#                     }
-        
-#     def clean_ledger_name(self):
-#         """
-#         Handles validation.
-#         """
-#         return string.capwords(check_name(self.cleaned_data["ledger_name"]))
-
-
 class PricingForm(forms.ModelForm):
     class Meta:
         model = Pricing

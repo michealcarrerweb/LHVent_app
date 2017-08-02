@@ -31,12 +31,13 @@ from account.compat import reverse, is_authenticated
 from account.conf import settings
 from account.forms import SignupForm, LoginUsernameForm, StaffSignupForm, BasicAddress
 from account.forms import ChangePasswordForm, PasswordResetForm, PasswordResetTokenForm
-from account.forms import SettingsForm, StaffSettingsForm
+from account.forms import SettingsForm, StaffSettingsForm, StaffUpdateForm
 from account.hooks import hookset
 from account.mixins import LoginRequiredMixin
 from account.models import *
 from account.serializers import AccountSerializer, UserSerializer
 from account.utils import default_redirect, get_form_data
+from customer_finance.models import Invoice as ClientInvoice, CustomerConflict
 from rest_framework import viewsets, generics, mixins
 from source_utils.permission_mixins import (
     SuperUserCheckMixin, 
@@ -421,7 +422,6 @@ class ClientSignupView(StaffCheckMixin, SignupView):
         # self.use_signup_code(self.created_user)
         email_address = self.create_email_address(form)
         if settings.ACCOUNT_EMAIL_CONFIRMATION_REQUIRED and not email_address.verified:
-            self.created_user.is_active = False
             self.created_user.save()
         self.create_client_account(form)
         self.create_password_history(form, self.created_user)
@@ -437,7 +437,6 @@ class ClientSignupView(StaffCheckMixin, SignupView):
         user.email = form.cleaned_data["email"].strip()
         user.first_name = form.cleaned_data.get("first_name")
         user.last_name = form.cleaned_data.get("last_name")
-        user.is_active = False       
         user.set_password(self.init_password)
         if commit:
             user.save()
@@ -496,7 +495,6 @@ class StaffSignupView(ManagerCheckMixin, ClientSignupView):
         # self.use_signup_code(self.created_user)
         email_address = self.create_email_address(form)
         if settings.ACCOUNT_EMAIL_CONFIRMATION_REQUIRED and not email_address.verified:
-            self.created_user.is_active = False
             self.created_user.save()
         self.create_client_account(form)
         self.create_password_history(form, self.created_user)
@@ -1026,11 +1024,26 @@ class SettingsView(LoginRequiredMixin, FormView):
         return default_redirect(self.request, fallback_url, **kwargs)
 
 
-class StaffUpdateView(ManagerCheckMixin, SignupView):
+class StaffUpdateView(ManagerCheckMixin, SuccessMessageMixin, UpdateView):
+    model = User
+    success_message = "%(item)s was successfully updated"
+    template_name = "form.html"
+    form_class = StaffUpdateForm
 
+    def get_success_message(self, cleaned_data):
+        # project_name = "{} - {}".format(
+        #     self.object.work_order.client.full_family_name(), 
+        #     self.object.work_order.description)
+        return self.success_message % dict(
+            cleaned_data,
+            item=self.__str__()
+        )
+
+
+class ClientView(ManagerCheckMixin, SignupView):
     model = User
 
-    template_name = "time_log/settings.html"
+    template_name = "form.html"
     form_class = StaffSettingsForm
 
 
@@ -1082,30 +1095,40 @@ class StaffList(ManagerCheckMixin, ListView):
 
 
 class ClientList(ManagerCheckMixin, ListView):
+    model = User
     template_name = "time_log/client_list.html"
     context_object_name = 'client_list'
     queryset = User.objects.filter(is_staff=False)
 
+    def get_queryset(self):
+        if self.args[0] == "owed":
+            client_list = ClientInvoice.objects.filter(paid_in_full=False)
+        elif self.args[0] == "conflicted":
+            client_list = CustomerConflict.objects.filter(conflict_resolution=None)
+        elif self.args[0] == "active":
+            client_list = ClientInvoice.objects.filter(closed_out=False)
+        else:
+            client_list = User.objects.filter(is_staff=False)
+        return client_list
+    
     def get_context_data(self, **kwargs):
         context = super(ClientList, self).get_context_data(**kwargs)
-        context['title'] = "Clients"
+        if self.args[0] == "owed":
+            context['title'] = "Clients with Outstanding Balances"
+        elif self.args[0] == "conflicted":
+            context['title'] = "Clients with Outstanding Conflicts"
+        elif self.args[0] == "active":
+            context['title'] = "Clients with Active Invoices"
+        else:
+            context['title'] = "All Clients"
         return context
 
 
-class ClientDetail(ManagerCheckMixin, DetailView):
+class UserDetail(ManagerCheckMixin, DetailView):
     model = User
     template_name = "account/detail.html"
 
     def get_context_data(self, **kwargs):
-        context = super(ClientDetail, self).get_context_data(**kwargs)
-        context['title'] = "Client's Details"
-        return context
-
-class StaffDetail(ClientDetail):
-    model = User
-    template_name = "account/detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(ClientDetail, self).get_context_data(**kwargs)
-        context['title'] = "Employee Details"
+        context = super(UserDetail, self).get_context_data(**kwargs)
+        context['title'] = "Details"
         return context

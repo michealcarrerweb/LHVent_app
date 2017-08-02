@@ -5,63 +5,47 @@ from django.db import models
 
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_save, post_save
-from django.urls import reverse_lazy, reverse
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse_lazy, reverse
 
-from source_utils.starters import CommonInfo
+from company.models import Company
+from source_utils.starters import CommonInfo, Conflict
 from versatileimagefield.fields import (
     VersatileImageField, PPOIField
 )
-from model_utils import FieldTracker
+# from model_utils import FieldTracker
 
 
 UPDATE_OPTION = (
-        ('Paid', 'Payment'), 
-        ('Cost', 'Additional Cost'), 
-        ('Credit', 'Company Reimbursement'), 
+        ('Payment', 'Payment(-)'),
+        ('Discount', 'Discount(-)'),
+        ('Fee', 'Fee/Additional Cost(+)'),  
+        ('Error-Add', 'Add to previous entry amount due to \
+            under error entry(-)'),
+        ('Error-Off', 'Take from previous entry amount due \
+            to over error entry(+)'),
     )
-
-DAYS_OUT = datetime.now()+timedelta(days=25)
-
-
-def upload_location(instance, filename):
-    return "%s/%s" %(instance.slug, filename)
 
 
 class Invoice(CommonInfo):
-    invoice = models.CharField(
-        "Invoice description", 
-    	max_length=200
+    vendor = models.ForeignKey(
+        'company.Company', 
+        on_delete=models.CASCADE
     )
     plu = models.CharField(
         "Invoice ID",
         unique=True, 
-        max_length=30,
-        blank=True, 
-        null=True
+        max_length=60
     )
-    # ledger = models.ForeignKey(
-    #     'finance.Ledger', 
-    #     limit_choices_to={'revenue':False},
-    # 	on_delete=models.CASCADE
-    # )
     invoice_amount = models.DecimalField(
         max_digits=10, 
         decimal_places=2
     )
     due_by = models.DateField(
-        default = DAYS_OUT
-    )
-    conflict = models.BooleanField(
-        default=False
-    )
-    conflict_description = models.CharField(
-        "Conflict description/resolution",
-        null=True, 
         blank=True, 
-        max_length=300
+        null=True
     )
     note = models.CharField(
         max_length=300,
@@ -74,10 +58,17 @@ class Invoice(CommonInfo):
     over_paid = models.BooleanField(
         default=False
     )
+    file = models.FileField(
+        'File',
+        upload_to='uploads/operations_invoice/',
+        null=True, 
+        blank=True,
+    )
     image = VersatileImageField(
         'Image',
         upload_to='images/operations_invoice/',
-        null=True, blank=True,
+        null=True, 
+        blank=True,
         width_field='width',
         height_field='height',
         ppoi_field='ppoi'
@@ -95,9 +86,6 @@ class Invoice(CommonInfo):
     ppoi = PPOIField(
         'Image PPOI'
     )
-    conflict_tracker = FieldTracker(
-        fields=['conflict',]
-    )
     log = models.TextField(
         default = '', 
         max_length=30000, 
@@ -106,23 +94,17 @@ class Invoice(CommonInfo):
     )
 
     class Meta:
-        unique_together = ("invoice", "plu")
-
-    def __init__(self, *args, **kwargs):
-        super(Invoice, self).__init__(*args, **kwargs)
-        self.plu_id = ""
-        self.extra = 0
-        self.balance = 0
-        self.payments = 0
-        self.payment_schedule = ""
+        unique_together = ("vendor", "plu")
 
     def __str__(self):
-        if self.plu:
-            self.plu_id = " {}".format(self.plu)
-        return "{}{} - ({})".format(
-            self.invoice, 
-            self.plu_id,
-            self.origin.date()
+        identifier = "{}-{}".format(
+            self.origin.strftime("%y"),
+            self.pk
+        )
+        return "{} {} - ({})".format(
+            self.vendor, 
+            self.plu,
+            identifier
         )
 
     def get_absolute_url(self):
@@ -131,64 +113,77 @@ class Invoice(CommonInfo):
             kwargs={'slug': self.slug}
         )
 
-    def get_balance(self):
-        invoice = Invoice.objects.get(id=self.id)
-        total_alterations = invoice.bill.all()
-        for item in total_alterations:
-            self.payment_schedule += "${} of {} was added on {}\n".format(
-                item.transaction_amount, 
-                item.transaction_update,
-                item.origin
-            )
-            if item.transaction_update == 'Cost':
-                item.transaction_amount = -abs(item.transaction_amount)
-            self.payments += item.transaction_amount
-        self.balance = self.invoice_amount - self.payments
-        if self.balance < 0:
-            self.paid_in_full = False
-            self.over_paid = True
-        elif self.balance == 0:
-            self.paid_in_full = True
-            self.over_paid = False
+    def get_payment_schedule(self):       
+        total_alterations = InvoiceAlteration.objects.filter(invoice=self)
+        if total_alterations:
+            payment_schedule = ""
+            for item in total_alterations:
+                payment_schedule += "{} of ${} was added on {}\n".format( 
+                    item.transaction_update,
+                    item.transaction_amount,
+                    item.origin.strftime(
+                                "%Y-%m-%d %H:%M:%S")                       
+                )
+                if item.transaction_note:
+                    payment_schedule = "{} - {}\n".format(
+                        payment_schedule,
+                        item.transaction_note
+                    )
+            return payment_schedule
         else:
-            self.paid_in_full = False
-            self.over_paid = False           
-        self.save()
+            return "No payments" 
 
-    def save(self, *args, **kwargs):
-        if self.conflict_tracker.has_changed('conflict'):
-            if self.conflict_tracker.previous('conflict') == False:
-                self.log += "Conflict arose on {}\n".format(
-                        str(datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S"))
-                        )
-                if self.conflict_description:
-                    self.log += "\t- reason: {}\n".format(
-                        self.conflict_description)
-                    self.conflict_description = ""
-            elif self.conflict_tracker.previous('conflict') == True:
-                self.log += "Conflict resolved on {}\n".format(
-                        str(datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S"))
-                        )
-                if self.conflict_description:
-                    self.log += "\t- resolution: {}\n".format(
-                                    self.conflict_description)
-                    self.conflict_description = ""
-        return super(Invoice, self).save(*args, **kwargs)
+    def get_balance_due(self):
+        total_alterations = InvoiceAlteration.objects.filter(invoice=self)
+        if total_alterations:
+            payments = 0
+            for item in total_alterations:
+                payments += item.transaction_amount
+            balance_due = self.invoice_amount - payments
+            if balance_due == 0:
+                self.paid_in_full = True
+                self.over_paid = False
+            elif balance_due > 0:
+                self.paid_in_full = False
+                self.over_paid = False
+            else:
+                self.paid_in_full = False
+                self.over_paid = True 
+            self.save()         
+            return balance_due
+        else:
+            return self.invoice_amount
 
 
 def pre_save_operation_financial(sender, instance, *args, **kwargs):
-    if instance.plu:
-            instance.plu_id = " {}".format(instance.plu)
-    financial_name = "{}{} - {}".format(
-        instance.invoice,  
-        instance.plu_id,
-        instance.origin#.date()
+    slug = "{}{}-{}".format(
+        instance.vendor,
+        instance.plu,
+        datetime.now().strftime("%y")
     )
-    instance.slug = slugify(financial_name)
+    instance.slug = slugify(slug)
 
 pre_save.connect(pre_save_operation_financial, sender=Invoice)
+
+
+class VendorConflict(Conflict):
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name='conflict'
+    )
+
+    def get_absolute_url(self):
+        return reverse(
+            "operation_finance:conflict_update", 
+            kwargs={'pk': self.pk}
+        )
+
+    class Meta:
+        unique_together = ("invoice", "conflict_description")
+
+    def __str__(self):
+        return self.invoice.__str__()
 
 
 class InvoiceAlteration(CommonInfo):
@@ -196,13 +191,6 @@ class InvoiceAlteration(CommonInfo):
         Invoice,
         on_delete=models.CASCADE,
         related_name='bill'
-    )
-    plu = models.CharField(
-        "Payment ID",
-        unique=True, 
-        max_length=30,
-        blank=True, 
-        null=True
     )
     transaction_update = models.CharField(
         max_length=30,
@@ -218,17 +206,18 @@ class InvoiceAlteration(CommonInfo):
         null=True
     )
 
+    class Meta:
+        verbose_name = _('Alteration')
+        verbose_name_plural = _('Alterations')
+
     def __init__(self, *args, **kwargs):
         super(InvoiceAlteration, self).__init__(*args, **kwargs)
-        self.plu_id = ""    
+        self.note = ""    
 
     def __str__(self):
-        if self.plu:
-            self.plu_id = " {}".format(self.plu)
-        return "{}{} - ({})".format(
-            self.invoice, 
-            self.plu_id,
-            self.origin
+        return "{} - ({})".format(
+            self.transaction_update,
+            str(self.pk)
         )
 
     def get_absolute_url(self):
@@ -237,17 +226,8 @@ class InvoiceAlteration(CommonInfo):
             kwargs={'slug': self.invoice.slug}
         )
 
-
-def pre_save_invoice_alteration(sender, instance, *args, **kwargs):
-    if instance.invoice.plu:
-            instance.plu_id = " {}".format(instance.invoice.plu)
-    alteration = "{}{} - {}/{}/{}".format(
-        instance.invoice.invoice, 
-        instance.invoice.plu_id,
-        instance.invoice.origin,
-        instance.transaction_update,
-        instance.transaction_amount
-    )
-    instance.slug = slugify(alteration)
-
-pre_save.connect(pre_save_invoice_alteration, sender=InvoiceAlteration)
+    def save(self, *args, **kwargs):
+        if self.transaction_update == 'Fee' or \
+                    self.transaction_update == 'Error-Off':
+            self.transaction_amount = -abs(self.transaction_amount) 
+        return super(InvoiceAlteration, self).save(*args, **kwargs)

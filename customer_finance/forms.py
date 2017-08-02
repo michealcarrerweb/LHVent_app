@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 
 from .models import Invoice, CustomerConflict, InvoiceAlteration
 
@@ -12,12 +13,6 @@ class GiveQuoteForm(forms.ModelForm):
         fields = (
             "pricing", "tax", "note", 
         )
-
-    # def __init__(self, *args, **kwargs):
-    #     super(GiveQuoteForm, self).__init__(*args, **kwargs)
-    #     instance = getattr(self, 'instance', None)
-    #     if instance and instance.id:
-    #         self.fields['total_price_quoted'].widget.attrs['readonly'] = True
 
 
 class SettleForm(forms.ModelForm):
@@ -32,16 +27,6 @@ class SettleForm(forms.ModelForm):
         )
         widgets = {'invoice': forms.HiddenInput(),
                     }
-
-    # def __init__(self, *args, **args):
-    #     super(SettleForm, self).__init__(*args, **kwargs)
-    #     # instance = getattr(self, 'instance', None)
-    #     # if instance and instance.id:
-    #     self.fields['invoice'].widget.atkwargs):
-    #     super(SettleForm, self).__init__(*args, **kwargs)
-    #     # instance = getattr(self, 'instance', None)
-    #     # if instance and instance.id:
-    #     self.fields['invoice'].widget.attrs['readonly'] = True
 
 
 class ResolutionForm(forms.ModelForm):
@@ -61,3 +46,31 @@ class ResolutionForm(forms.ModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.id:
             self.fields['conflict_description'].widget.attrs['readonly'] = True
+
+
+class CloseOutForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = (
+            "closed_out",
+        )
+        widgets = {'closed_out': forms.HiddenInput(),
+                    }
+
+    def clean(self):
+        if not self.instance.paid_in_full or self.instance.over_paid or not \
+            self.instance.work_order.closed_out or not self.instance.invoice_quote:
+            raise forms.ValidationError(
+                        _("This invoice cannot be closed out due to unfulfilled required activities.")
+                    )
+        conflict_count = self.instance.conflict.filter(conflict_resolution=None)                
+        if conflict_count:
+            if len(conflict_count) == 1:
+                mesg_resp = "This invoice cannot be closed out due to a pending conflict."
+            else:
+                mesg_resp = "This invoice cannot be closed out due to {} pending conflicts.".format(
+                    len(conflict_count)
+                )
+            raise forms.ValidationError(
+                _(mesg_resp)
+            )

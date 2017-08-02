@@ -162,6 +162,9 @@ class Product(CommonInfo):
     def get_cost(self):
         return self.admin_material + self.prep_material + self.field_material
 
+    def get_usable_quantity(self):
+        return self.quantity - self.units_damaged_or_lost - self.quantity_called_for
+
     def get_success_url(self):
         return reverse("product:category_item_list", kwargs={'slug': self.base.slug})
 
@@ -175,7 +178,11 @@ def pre_save_product(sender, instance, *args, **kwargs):
         instance.discontinued = None
     elif instance.no_longer_available and instance.discontinued == None:
         instance.discontinued = datetime.date.today()
-    if instance.quantity < instance.order_if_below:
+    if (
+        instance.quantity - 
+        instance.units_damaged_or_lost - 
+        instance.quantity_called_for
+            ) < instance.order_if_below:
         instance.order_now = True
     else:
         instance.order_now = False

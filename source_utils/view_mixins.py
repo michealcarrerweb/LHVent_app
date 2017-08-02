@@ -13,15 +13,5 @@ class DeleteViewMixin(SuperUserCheckMixin, DeleteView):
 		return super(DeleteViewMixin, self).delete(request, *args, **kwargs)
 
 
-class ContextMixin(object):
-	success_message = "%(item)s was successfully %(action)s"
-
-	def __init__(self, *args, **kwargs):
-		super(ContextMixin, self).__init__(*args, **kwargs)
-		self.location = ""
-
-	def get_context_data(self, **kwargs):
-		context = super(ContextMixin, self).get_context_data(**kwargs)
-		context['title'] = "{} {}".format(self.name.title(),
-										  self.action.title())
-		return context
+class ContextMixin:
+	pass

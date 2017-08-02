@@ -17,73 +17,41 @@ class TemporaryPassWordTemplateView(TemplateView):
 
 
 class SuperUserCheckMixin:
+    title = None
+    url_insert = None
+    permissions = 'request.user.is_superuser'
    
     def dispatch(self, request, *args, **kwargs):
         if not self.request.user.is_active or request.user.account.initial_password:
             return redirect('temp_password_change')
-        if request.user.is_superuser:
-            return super(SuperUserCheckMixin, self).dispatch(request, 
-            	*args, **kwargs)
-        return redirect(self.user_check_failure_path)
-
-
-class ManagerCheckMixin:
-
-    def dispatch(self, request, *args, **kwargs):
-        if not self.request.user.is_active or request.user.account.initial_password:
-            return redirect('temp_password_change')
         if request.user.is_active:
-            if request.user.is_superuser or request.user.is_manager:
-                return super(ManagerCheckMixin, self).dispatch(request, 
+            if self.permissions:
+                return super(SuperUserCheckMixin, self).dispatch(request, 
                 	*args, **kwargs)
         return redirect(self.user_check_failure_path)
 
-
-class StaffCheckMixin:
-
-    def dispatch(self, request, *args, **kwargs):
-        if not self.request.user.is_active or request.user.account.initial_password:
-            return redirect('temp_password_change')
-        if request.user.is_active:
-            if request.user.is_staff:
-                return super(StaffCheckMixin, self).dispatch(request, 
-                    *args, **kwargs)
-        return redirect(self.user_check_failure_path)
+    def get_context_data(self, **kwargs):
+        context = super(SuperUserCheckMixin, self).get_context_data(**kwargs)
+        context['title'] = self.title
+        context['url_insert'] = self.url_insert
+        return context
 
 
-class WarehouseAndManagerCheckMixin:
+class ManagerCheckMixin(SuperUserCheckMixin):
+    permissions = 'request.user.is_superuser or request.user.is_manager'
 
-    def dispatch(self, request, *args, **kwargs):
-        if not self.request.user.is_active or request.user.account.initial_password:
-            return redirect('temp_password_change')
-        if request.user.is_active:
-            if request.user.is_superuser or request.user.is_manager or \
-                request.user.is_warehouse:
-                return super(WarehouseAndManagerCheckMixin, self).dispatch(request, 
-                	*args, **kwargs)
-        return redirect(self.user_check_failure_path)
+
+class StaffCheckMixin(SuperUserCheckMixin):
+    permissions = 'request.user.is_staff'
+
+
+class WarehouseAndManagerCheckMixin(SuperUserCheckMixin):
+    permissions = 'request.user.is_superuser or request.user.is_manager or request.user.is_warehouse'
  
 
-class MaintenanceAndManagerCheckMixin:
-
-    def dispatch(self, request, *args, **kwargs):
-        if not self.request.user.is_active or request.user.account.initial_password:
-            return redirect('temp_password_change')
-        if request.user.is_active:
-            if request.user.is_superuser or request.user.is_maintenance or \
-            request.user.is_manager:
-                return super(MaintenanceAndManagerCheckMixin, self).dispatch(request, 
-                    *args, **kwargs)
-        return redirect(self.user_check_failure_path)
+class MaintenanceAndManagerCheckMixin(SuperUserCheckMixin):
+    permissions = 'request.user.is_superuser or request.user.is_maintenance or request.user.is_manager'
 
 
-class FinanceCheckMixin:
-
-    def dispatch(self, request, *args, **kwargs):
-        if not self.request.user.is_active or request.user.account.initial_password:
-            return redirect('temp_password_change')
-        if request.user.is_active:
-            if request.user.is_superuser or request.user.is_financial:
-                return super(FinanceCheckMixin, self).dispatch(request, 
-                    *args, **kwargs)
-        return redirect(self.user_check_failure_path)
+class FinanceCheckMixin(SuperUserCheckMixin):
+    permissions = 'request.user.is_superuser or request.user.is_financial'

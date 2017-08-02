@@ -46,14 +46,7 @@ class ProductCreateForm(forms.ModelForm):
 
 
 class ProductUpdateForm(ProductCreateForm):
-    class Meta:
-        model = Product
-        fields = (
-            "base", "supplier", "item", "quantity", "admin_time", "prep_time", 
-            "field_time", "admin_material", "prep_material", "field_material", 
-            "quantity_assesement", "order_if_below", "order_now", 
-            "units_damaged_or_lost", "image"
-        )
+    pass
  
 
 class ImageUpdateForm(forms.ModelForm):
@@ -63,8 +56,8 @@ class ImageUpdateForm(forms.ModelForm):
 
 
 class ItemAddDamagedForm(forms.Form):
-    damaged_or_lost = forms.IntegerField(label='Quantity damaged or lost?')
+    damaged_or_lost = forms.IntegerField(label='Quantity of damaged or lost?')
 
 
 class ItemAddedForm(forms.Form):
-    added = forms.IntegerField(label='Add additional stock?')
+    added = forms.IntegerField(label='Add additional to stock?')

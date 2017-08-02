@@ -1,0 +1,26 @@
+{% extends "list.html" %}
+
+{% block links %}
+<!--   <a href="{% url 'client_signup' %}">New Client</a><br>
+  <a href="{% url 'client_list' 'active' %}">Active Clients</a><br>
+  <a href="{% url 'client_list' 'owed' %}">Client with Outstanding Balances</a><br>
+  <a href="{% url 'client_list' 'conflicted' %}">Client with Outstanding Conflicts</a><br>
+  <a href="{% url 'client_list' 'all' %}">All Clients</a><br> -->
+{% endblock %}
+
+{% block body_options %}
+  {% for obj in object_list %}
+    <li class="list-group-item">
+      <ul>
+        <dt>{{ obj }}- {{ obj.calculate_hours_for_day }}
+          {% if client.account.is_active == False %}
+           - DEACTIVATED on {{ client.last_modified }}
+          {% endif %}
+          {% if client.account.initial_password %}
+           - Temporary Password: {{ client.account.initial_password }}                                   
+          {% endif %}
+        </dt>
+      </ul>
+    </li>      
+  {% endfor %}
+{% endblock %}

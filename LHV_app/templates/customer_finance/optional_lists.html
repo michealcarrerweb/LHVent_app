@@ -1,20 +1,75 @@
 {% extends "list.html" %}
 
 {% block links %}
-	{% include 'customer_finance/_href.html' %}
+  <a href="{% url "customer_finance:invoice_create" %}">
+    New Invoice
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "owed" %}">
+    Invoices wth Balances
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "conflicted" %}">
+    Invoices wth Conflicts
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "active" %}">
+    All Active Invoices
+  </a><br>
+  <a href="{% url "customer_finance:invoice_lists" "all" %}">
+    All Invoices
+  </a>
 {% endblock %}
 
 {% block body_options %}
-    {% for obj in object_list %}
+  {% if object_list %}
+  {% for obj in object_list %}   
     <li class="list-group-item">
-        <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
-        {% if obj.invoice_quote.total_price_quoted and not obj.paid_in_full or obj.over_paid %}
-        Balance {% if obj.over_paid %}Owed:  $ <a href="{% url "customer_finance:alteration_create" obj.slug %}" style="color:red">{{ obj.get_balance_due }}</a>{% else %}Due:  $ <a href="{% url "customer_finance:alteration_create" obj.slug %}">{{ obj.get_balance_due }}</a>{% endif %}
-        {% endif %}
-        {% if not obj.invoice_quote.total_price_quoted %}
-         - <a href="{% url "customer_finance:invoice_give_quote" obj.slug %}" style="color:green">Quote</a>
-        {% endif %}
-    </li>
+      <ul>
+        <dt><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></dt>
+          {% if not obj.closed_out %}
+            <dt>Tasks To Complete:</dt>              
+            {% if not obj.invoice_quote.total_price_quoted %}
+              <dd>
+              <a href="{% url "customer_finance:invoice_give_quote" obj.slug %}" >Quote</a>
+              </dd>
+            {% else %}
+              {% if obj.paid_in_full %}
+                <dd>
+                Paid In Full
+                </dd>
+                  {% if obj.work_order.closed_out and not obj.check_for_conflicts %}
+                  <dt>Tasks To Complete:</dt>
+                  <dd>
+                  <a href="{% url "customer_finance:close_out" obj.slug %}" >Close Out Invoice</a>
+                  </dd>
+                  {% endif %}
+              {% elif obj.over_paid %}
+                <dd>
+                Over Paid:  $ <a href="{% url "customer_finance:alteration_create" obj.slug %}" style="color:red">{{ obj.get_balance_due }}</a>
+                </dd>
+              {% else %}
+                <dd>
+                Due{% if obj.due_by %} <strong>by {{ obj.due_by }}</strong>{% endif %}: $ <a href="{% url "customer_finance:alteration_create" obj.slug %}">{{ obj.get_balance_due }}</a>
+                </dd>
+              {% endif %}
+              {% if obj.check_for_conflicts %}
+                <dd>
+                <a href="{{ obj.get_absolute_url }}">Settle </a>Conflicts
+                </dd>
+              {% endif %}
+            {% endif %}
+          {% else %}
+            Closed 0ut
+          {% endif %}
+        </ul>
+    </li>    
 	{% endfor %}
-    {% include 'customer_finance/_pagination.html' %}
+    {% else %}
+      <li class="list-group-item">
+        <ul>
+          <dl>
+            <dt>Empty List</dt>
+          </dl>
+        </ul>
+      </li>
+    {% endif %}
+    {% include '_pagination.html' %}
 {% endblock %}
