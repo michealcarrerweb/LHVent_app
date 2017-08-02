@@ -15,31 +15,6 @@ from django.shortcuts import get_object_or_404
 from customer_finance.models import Invoice, InvoiceAlteration
 
 
-
-# class NumberedCanvas(canvas.Canvas):
-#     def __init__(self, *args, **kwargs):
-#         canvas.Canvas.__init__(self, *args, **kwargs)
-#         self._saved_page_states = []
-
-#     def showPage(self):
-#         self._saved_page_states.append(dict(self.__dict__))
-#         self._startPage()
-
-#     def save(self):
-#         """add page info to each page (page x of y)"""
-#         num_pages = len(self._saved_page_states)
-#         for state in self._saved_page_states:
-#             self.__dict__.update(state)
-#             self.draw_page_number(num_pages)
-#             canvas.Canvas.showPage(self)
-#         canvas.Canvas.save(self)
-
-#     def draw_page_number(self, page_count):
-#         # Change the position of this to wherever you want the page number to be
-#         self.drawRightString(211 * mm, 15 * mm + (0.2 * inch),
-#                              "Page %d of %d" % (self._pageNumber, page_count))
-
-
 class MyPrint:
     def __init__(self, buffer, pagesize, slug):
         self.buffer = buffer
@@ -99,34 +74,31 @@ class MyPrint:
             while len(num) < 5:
                 num = "0" + num
         balance_due = invoice.get_balance_due()
-        elements.append(Paragraph("4561 Center Lane", styles['centered']))
-        elements.append(Spacer(1, 4))
-        elements.append(Paragraph("Foglesville PA 18921", styles['centered']))
-        elements.append(Spacer(1, 4))
-        elements.append(Paragraph("1800 345 5555", styles['centered']))
-        elements.append(Spacer(1, 4))
-        elements.append(Paragraph("Permit 087-2344-999821", styles['centered']))
-        elements.append(Spacer(1, 4))
-        elements.append(Paragraph("Tax ID 23-543-12", styles['centered']))
-        elements.append(Spacer(1, 12))
-        elements.append(Paragraph(
-            "{} - Invoice # {} - {}".format(
-                full_name, num, str(datetime.datetime.now().date())), styles['Heading3']
-            )
-        )
-        elements.append(Paragraph("Service description:", styles['Heading4']))
-        elements.append(Paragraph(invoice.work_order.description, styles['Normal']))
-        elements.append(Spacer(1, 12))
-        elements.append(Paragraph(full_name, styles['Normal']))
-        elements.append(Paragraph(address_line1, styles['Normal']))
-        elements.append(Spacer(1, 12))
-        elements.append(Paragraph("Service charge: $" + str(
-            invoice.invoice_quote.total_price_quoted - invoice.invoice_quote.tax_on_quote), styles['Normal']))
-        elements.append(Paragraph("Taxes: $" + str(
-            invoice.invoice_quote.tax_on_quote), styles['Normal']))
-        elements.append(Paragraph("Total: $" + str(
-            invoice.invoice_quote.total_price_quoted), styles['Normal']))
-        elements.append(Spacer(1, 12))
+        element_list = [
+            ("4561 Center Lane", 'centered', 1, 4),
+            ("Foglesville PA 18921", 'centered', 1, 4),
+            ("1800 345 5555", 'centered', 1, 4),
+            ("Permit 087-2344-999821", 'centered', 1, 4),
+            ("Tax ID 23-543-12", 'centered', 1, 12),
+
+            ("{} - Invoice # {} - {}".format(
+                full_name, num, str(datetime.datetime.now().date())), 'Heading3', 0, 0),
+            ("Service description:", 'Heading4', 0, 0),
+            (invoice.work_order.description, 'Normal', 1, 12),
+            (full_name, 'Normal', 0, 0),
+            (address_line1, 'Normal', 1, 12),
+            ("Service charge: $" + str(
+                invoice.invoice_quote.total_price_quoted - invoice.invoice_quote.tax_on_quote), 
+                'Normal', 0, 0),
+            ("Taxes: $" + str(
+                invoice.invoice_quote.tax_on_quote), 'Normal', 0, 0),
+            ("Total: $" + str(
+                invoice.invoice_quote.total_price_quoted), 'Normal', 1, 12),
+            
+        ]
+        for element in element_list:
+            elements.append(Paragraph(element[0], styles[element[1]]))
+            elements.append(Spacer(element[2], element[3]))
         total_alterations = InvoiceAlteration.objects.filter(invoice=invoice)
         payments = 0
         if total_alterations:
