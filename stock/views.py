@@ -117,8 +117,13 @@ class SupplierItemCreate(ItemCreate):
 
 class ItemUpdate(ItemMessageMixin, UpdateView):
     success_message = "%(item)s was successfully updated"
-    title = "Update Product"
     url_insert = "product:item_delete"
+
+    def get_context_data(self, **kwargs):
+        context = super(ItemUpdate, self).get_context_data(**kwargs)
+        context['title'] = "Update {}".format(
+            self.object)
+        return context
 
 
 class ItemAddDamaged(ItemMessageMixin, FormView):

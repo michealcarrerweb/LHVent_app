@@ -22,18 +22,18 @@
             {% if balance %}
             <strong style="color:#ff4000;">Current balance due: ${{ balance }}</strong>
             {% endif %}
-            {% include "_delete_option.html" %}
+            {% include "_delete_option.html" %}       
+            <div class="list-group">
+                <form method="POST" action="" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <input class="btn btn-default" 
+                           type="button" value="{% trans "Cancel" %}" 
+                           onclick="window.history.go(-1);"/>
+                    <button class="btn btn-primary" type="submit">{% trans "Submit" %}</button>               
+                </form>
+            </div> 
         </div>
-        <div class="list-group">
-            <form method="POST" action="" enctype="multipart/form-data">
-                {% csrf_token %}
-                {% bootstrap_form form %}
-                <input class="btn btn-default" 
-                       type="button" value="{% trans "Cancel" %}" 
-                       onclick="window.history.go(-1);"/>
-                <button class="btn btn-primary" type="submit">{% trans "Submit" %}</button>               
-            </form>
-        </div> 
     </div>
 {% endblock %}
 {% block scripts %}

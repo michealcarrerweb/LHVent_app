@@ -1026,17 +1026,19 @@ class SettingsView(LoginRequiredMixin, FormView):
 
 class StaffUpdateView(ManagerCheckMixin, SuccessMessageMixin, UpdateView):
     model = User
-    success_message = "%(item)s was successfully updated"
+    success_message = "Staff member was successfully updated"
     template_name = "form.html"
     form_class = StaffUpdateForm
+    title = "Update Username"
 
     def get_success_message(self, cleaned_data):
         # project_name = "{} - {}".format(
         #     self.object.work_order.client.full_family_name(), 
         #     self.object.work_order.description)
+        print(self)
         return self.success_message % dict(
             cleaned_data,
-            item=self.__str__()
+            item=self
         )
 
 
