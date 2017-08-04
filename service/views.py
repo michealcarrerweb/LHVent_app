@@ -14,6 +14,7 @@ from django.views.generic.edit import ModelFormMixin
 from source_utils.permission_mixins import (
     SuperUserCheckMixin, ManagerCheckMixin
 )
+from source_utils.view_mixins import DeleteViewMixin
 from .models import Base, Service, PartsForService
 from .forms import (
     BaseForm, ServiceCreateForm, ServiceUpdateForm, PartsForServiceFormSet
@@ -63,15 +64,10 @@ class BaseTypeUpdate(BaseMessageMixin, UpdateView):
         )
 
 
-class BaseTypeDelete(SuperUserCheckMixin, DeleteView):
+class BaseTypeDelete(DeleteViewMixin):
     model = Base
-    template_name = "delete.html"
     success_url = reverse_lazy('service:base_service_list')
     success_message = "Category was successfully deleted"
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, self.success_message)
-        return super(BaseTypeDelete, self).delete(request, *args, **kwargs)
 
 
 class ServiceAndBaseList(ManagerCheckMixin, ListView):#
@@ -192,12 +188,7 @@ class ServiceAndPartsUpdate(ManagerCheckMixin, SuccessMessageMixin, UpdateView):
         )
 
 
-class ServiceDelete(SuperUserCheckMixin, DeleteView):#
+class ServiceDelete(DeleteViewMixin):#
     model = Service
-    template_name = "delete.html"
     success_url = reverse_lazy('service:service_list')
     success_message = "Service was successfully deleted"
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, self.success_message)
-        return super(ServiceDelete, self).delete(request, *args, **kwargs)

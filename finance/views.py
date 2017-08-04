@@ -48,7 +48,7 @@ class PricingUpdateView(PricingEditMixin, UpdateView):
     success_message = "Pricing was successfully updated"
 
 
-class HourlyBaseUpdateView(SuccessMessageMixin, UpdateView):
+class HourlyBaseUpdateView(FinanceCheckMixin, SuccessMessageMixin, UpdateView):
     model = Hourly
     template_name = 'form.html'
     form_class = HourlyBaseForm

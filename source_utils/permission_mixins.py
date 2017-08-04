@@ -19,15 +19,26 @@ class TemporaryPassWordTemplateView(TemplateView):
 class SuperUserCheckMixin:
     title = None
     url_insert = None
-    permissions = 'request.user.is_superuser'
+    permissions = ['is_superuser',]
+    user_check_failure_path = '500'
+
    
     def dispatch(self, request, *args, **kwargs):
         if not self.request.user.is_active or request.user.account.initial_password:
             return redirect('temp_password_change')
+        perm_dict = {'is_superuser': self.request.user.is_superuser,
+                     'is_manager': self.request.user.is_manager,
+                     'is_financial': self.request.user.is_financial,
+                     'is_warehouse': self.request.user.is_warehouse,
+                     'is_maintenance': self.request.user.is_maintenance,
+                     'is_staff': self.request.user.is_staff,
+                     'is_service': self.request.user.is_service,
+        }
         if request.user.is_active:
-            if self.permissions:
-                return super(SuperUserCheckMixin, self).dispatch(request, 
-                	*args, **kwargs)
+            for priviledge in self.permissions:
+                if perm_dict[priviledge]:
+                    return super(SuperUserCheckMixin, self).dispatch(request, 
+                    	*args, **kwargs)
         return redirect(self.user_check_failure_path)
 
     def get_context_data(self, **kwargs):
@@ -38,20 +49,20 @@ class SuperUserCheckMixin:
 
 
 class ManagerCheckMixin(SuperUserCheckMixin):
-    permissions = 'request.user.is_superuser or request.user.is_manager'
+    permissions = ['is_superuser', 'is_manager']
 
 
 class StaffCheckMixin(SuperUserCheckMixin):
-    permissions = 'request.user.is_staff'
+    permissions = ['is_superuser', 'is_staff']
 
 
 class WarehouseAndManagerCheckMixin(SuperUserCheckMixin):
-    permissions = 'request.user.is_superuser or request.user.is_manager or request.user.is_warehouse'
+    permissions = ['is_superuser', 'is_manager', 'is_warehouse']
  
 
 class MaintenanceAndManagerCheckMixin(SuperUserCheckMixin):
-    permissions = 'request.user.is_superuser or request.user.is_maintenance or request.user.is_manager'
+    permissions = ['is_superuser', 'is_manager', 'is_maintenance']
 
 
 class FinanceCheckMixin(SuperUserCheckMixin):
-    permissions = 'request.user.is_superuser or request.user.is_financial'
+    permissions = ['is_superuser', 'is_financial']

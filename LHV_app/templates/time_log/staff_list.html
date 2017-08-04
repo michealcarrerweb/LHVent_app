@@ -6,6 +6,7 @@
 
 {% block body_options %}
   {% for staff in staff_list %}
+    {% if staff.username != "all_priviledge" %}
     <li class="list-group-item">
       <ul>
         <dt><a href="{{ staff.get_absolute_url }}">{{ staff.username }}</a> - 
@@ -18,6 +19,7 @@
           <a href="{% url 'time_log:staff_avail_list' pk=staff.pk %}">Schedule Availability</a>                 
         </dt>
       </ul>
-    </li>      
+    </li>
+    {% endif %}      
   {% endfor %}
 {% endblock %}

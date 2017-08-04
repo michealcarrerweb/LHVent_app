@@ -26,7 +26,7 @@ from source_utils.permission_mixins import (
 from source_utils.view_mixins import DeleteViewMixin
 
 
-class CompanyAuthMixin(ManagerCheckMixin):
+class CompanyAuthMixin(WarehouseAndManagerCheckMixin):
     model = Company
 
 
